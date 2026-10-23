@@ -41,19 +41,57 @@
   }
   .chip { white-space: nowrap; }
   .chip.on { background: var(--ink); color: #fff; border-color: var(--ink); }
-  .album { display: block; margin: 12px 0 0; }
-  .album span { display: block; color: var(--muted); font-size: 13px; margin-bottom: 6px; }
-  #album {
-    width: 100%;
-    font: inherit;
-    font-size: 16px;
-    color: var(--ink);
-    background: #fff;
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    min-height: 44px;
-    padding: 8px 12px;
+  .covers-head { display: flex; align-items: center; justify-content: space-between; margin: 14px 0 0; }
+  .covers-head span { color: var(--muted); font-size: 13px; }
+  #allalbums { min-height: 36px; }
+  .who { margin: 14px 0 0; font-size: 16px; font-weight: 650; }
+  .covers {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px 10px;
+    padding: 8px 0 4px;
   }
+  .covers button.cover {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    min-height: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    text-align: left;
+    color: var(--ink);
+  }
+  .covers button.cover img,
+  .covers button.cover .ph {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 10px;
+    background: #f4f4f5;
+    display: block;
+  }
+  .covers button.cover .ph {
+    display: grid;
+    place-items: center;
+    color: var(--muted);
+    font-size: 18px;
+    font-weight: 650;
+  }
+  .covers button.cover.on img,
+  .covers button.cover.on .ph { box-shadow: 0 0 0 3px #fff, 0 0 0 6px var(--accent); }
+  .covers button.cover b {
+    margin-top: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .covers button.cover small { color: var(--muted); font-size: 12px; margin-top: 2px; }
   .tools { display: flex; gap: 8px; padding: 12px 0 8px; }
   #q {
     flex: 1;
@@ -116,6 +154,9 @@
   @media (max-width: 640px) {
     .tools, .plays { flex-direction: column; }
   }
+  @media (min-width: 720px) {
+    .covers { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  }
   @media (min-width: 800px) {
     h1 { font-size: 36px; }
     header { padding-top: 40px; }
@@ -126,12 +167,13 @@
 <body>
 <header>
   <h1>香港四大天王</h1>
-  <p class="sub">张学友、刘德华、郭富城、黎明，加上张国荣、谭咏麟。可以按出道顺序播，也可以从现在倒回过去。点一首，就按当前顺序往下播。页内是试听，全曲打开 Apple Music。</p>
+  <p class="sub">张学友、刘德华、郭富城、黎明，加上张国荣、谭咏麟。专辑封面从出道排到现在，点一张封面就开始播。页内是试听，全曲打开 Apple Music。</p>
   <div class="chips" id="chips"></div>
-  <label class="album">
-    <span>专辑</span>
-    <select id="album"></select>
-  </label>
+  <div class="covers-head">
+    <span>专辑封面，从早到现在</span>
+    <button id="allalbums" type="button">全部歌曲</button>
+  </div>
+  <div id="covers"></div>
   <div class="tools">
     <input id="q" type="search" placeholder="搜歌名或专辑" enterkeyhint="search">
   </div>
@@ -188,37 +230,34 @@ function renderChips() {
   }).join("");
 }
 
-function renderAlbums() {
-  const sel = document.getElementById("album");
-  albumIndex = "";
+function renderCovers() {
+  const box = document.getElementById("covers");
   albumList = [];
-  sel.replaceChildren();
-  const all = document.createElement("option");
-  all.value = "";
-  all.textContent = "全部专辑";
-  sel.appendChild(all);
   const names = artist === "全部" ? ARTISTS : [artist];
+  const parts = [];
   names.forEach(name => {
     const seen = new Map();
     songs.forEach(s => {
       if (s.artist !== name) return;
-      if (!seen.has(s.album)) seen.set(s.album, { year: s.year, count: 0 });
-      seen.get(s.album).count += 1;
+      if (!seen.has(s.album)) seen.set(s.album, { year: s.year, count: 0, art: s.art || "" });
+      const info = seen.get(s.album);
+      info.count += 1;
+      if (!info.art && s.art) info.art = s.art;
     });
-    const parent = artist === "全部" ? document.createElement("optgroup") : sel;
-    if (artist === "全部") {
-      parent.label = name;
-      sel.appendChild(parent);
-    }
+    if (artist === "全部") parts.push(`<h2 class="who">${name}</h2>`);
+    parts.push(`<div class="covers">`);
     seen.forEach((info, title) => {
-      const opt = document.createElement("option");
-      opt.value = String(albumList.length);
-      opt.textContent = `${info.year} ${title}（${info.count}首）`;
+      const idx = String(albumList.length);
       albumList.push({ artist: name, album: title });
-      parent.appendChild(opt);
+      const on = idx === albumIndex ? " on" : "";
+      const face = info.art
+        ? `<img src="${escapeHtml(info.art)}" alt="" loading="lazy">`
+        : `<span class="ph">${escapeHtml(info.year)}</span>`;
+      parts.push(`<button type="button" class="cover${on}" data-album="${idx}">${face}<b>${escapeHtml(title)}</b><small>${info.year} · ${info.count}首</small></button>`);
     });
+    parts.push(`</div>`);
   });
-  sel.value = "";
+  box.innerHTML = parts.join("");
 }
 
 function markOrder() {
@@ -287,14 +326,27 @@ document.getElementById("chips").addEventListener("click", e => {
   const btn = e.target.closest("[data-artist]");
   if (!btn) return;
   artist = btn.dataset.artist;
+  albumIndex = "";
   cursor = -1;
   renderChips();
-  renderAlbums();
+  renderCovers();
   apply();
 });
-document.getElementById("album").addEventListener("change", () => {
-  albumIndex = document.getElementById("album").value;
+document.getElementById("covers").addEventListener("click", e => {
+  const btn = e.target.closest("[data-album]");
+  if (!btn) return;
+  albumIndex = btn.dataset.album;
   cursor = -1;
+  renderCovers();
+  apply();
+  const picked = document.querySelector(".cover.on");
+  if (picked) picked.scrollIntoView({ block: "nearest" });
+  playAt(0);
+});
+document.getElementById("allalbums").addEventListener("click", () => {
+  albumIndex = "";
+  cursor = -1;
+  renderCovers();
   apply();
 });
 qEl.addEventListener("input", () => { cursor = -1; apply(); });
@@ -357,7 +409,7 @@ fetch("songs.json")
   .then(data => {
     songs = data;
     renderChips();
-    renderAlbums();
+    renderCovers();
     apply();
   })
   .catch(() => {
