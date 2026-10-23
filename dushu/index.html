@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>老爹每日读书</title>
+<meta name="description" content="每天精读一本好书：概述、观点、感悟与启发，可一键朗读。">
+<meta name="theme-color" content="#7a3e1d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="每日读书">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+:root{--bg:#f6efe3;--card:#fffaf1;--ink:#2b2118;--sub:#6b5a48;--acc:#7a3e1d;--gold:#b8860b;--line:#e6d8c2}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:20px/1.9 "PingFang SC","Songti SC","Noto Serif CJK SC","Microsoft YaHei",serif;padding-bottom:calc(150px + env(safe-area-inset-bottom))}
+header{background:linear-gradient(135deg,#7a3e1d,#b8860b);color:#fff8e7;padding:calc(18px + env(safe-area-inset-top)) 20px 22px;border-radius:0 0 24px 24px}
+header .row{display:flex;justify-content:space-between;align-items:center}
+header h1{margin:0;font-size:26px;letter-spacing:2px}
+header .date{font-size:17px;opacity:.9;margin-top:4px}
+.tabs button{background:rgba(255,255,255,.18);color:#fff;border:0;border-radius:20px;padding:8px 14px;font-size:17px;margin-left:6px}
+.tabs button.on{background:#fff8e7;color:var(--acc);font-weight:700}
+main{max-width:760px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px 20px;margin:16px 0;box-shadow:0 2px 10px rgba(122,62,29,.06)}
+.book h2{margin:0;font-size:30px;line-height:1.4;color:var(--acc)}
+.meta{color:var(--sub);font-size:18px;margin-top:6px}
+.tag{display:inline-block;background:#f1e2c8;color:var(--acc);border-radius:10px;padding:0 10px;font-size:16px;margin-left:6px}
+h3{font-size:23px;margin:0 0 8px;color:var(--acc);display:flex;align-items:center;gap:8px}
+h3:before{content:"";width:6px;height:22px;background:var(--gold);border-radius:3px}
+p{margin:6px 0}
+ol{margin:0;padding-left:1.4em}
+ol li{margin:10px 0}
+.nav{display:flex;gap:10px}
+.nav button{flex:1;font-size:18px;padding:12px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--acc)}
+.speaking{background:#fbe9c6;border-radius:6px}
+.player{position:fixed;left:0;right:0;bottom:0;background:rgba(255,250,241,.97);border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.player .in{max-width:760px;margin:0 auto;display:flex;align-items:center;gap:10px}
+.big{flex:1;font-size:24px;font-weight:700;padding:16px;border:0;border-radius:18px;background:linear-gradient(135deg,#7a3e1d,#b8860b);color:#fff;letter-spacing:2px}
+.stop{font-size:20px;padding:16px 16px;border-radius:18px;border:1px solid var(--line);background:#fff;color:var(--acc)}
+.speed{font-size:18px;padding:14px 6px;border-radius:14px;border:1px solid var(--line);background:#fff;color:var(--acc)}
+.status{max-width:760px;margin:6px auto 0;font-size:15px;color:var(--sub);text-align:center}
+.arch a{display:flex;justify-content:space-between;gap:10px;padding:14px 4px;border-bottom:1px solid var(--line);color:var(--ink);text-decoration:none}
+.arch a .d{color:var(--sub);font-size:17px;white-space:nowrap}
+.arch a.today{color:var(--acc);font-weight:700}
+.fs{display:flex;gap:8px;justify-content:flex-end;font-size:16px;color:var(--sub);align-items:center}
+.fs button{font-size:16px;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:4px 10px;color:var(--acc)}
+footer{text-align:center;color:var(--sub);font-size:15px;padding:20px}
+</style>
+</head>
+<body>
+<header><div class="row"><h1>📖 老爹每日读书</h1><div class="tabs"><button id="tToday" class="on">今日</button><button id="tArch">往期</button></div></div><div class="date" id="hdate"></div></header>
+<main id="main"><div class="card">加载中…</div></main>
+<div class="player" id="player"><div class="in">
+<button class="big" id="play">▶ 朗读</button>
+<button class="stop" id="stop">■ 停止</button>
+<select class="speed" id="speed"><option value="0.8">慢速</option><option value="1" selected>正常</option><option value="1.2">稍快</option><option value="1.5">快速</option></select>
+</div><div class="status" id="status">点「朗读」听今天的书</div></div>
+<script>
+const START='2026-10-14';let BOOKS=[],cur=null,view='today';
+const $=s=>document.querySelector(s);
+function shDate(){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())}
+function dayIdx(d){return Math.round((Date.parse(d+'T00:00:00Z')-Date.parse(START+'T00:00:00Z'))/864e5)}
+function addDays(d,n){return new Date(Date.parse(d+'T00:00:00Z')+n*864e5).toISOString().slice(0,10)}
+function bookFor(d){const i=dayIdx(d);return BOOKS[((i%BOOKS.length)+BOOKS.length)%BOOKS.length]}
+function fmt(d){const [y,m,dd]=d.split('-');const w='日一二三四五六'[new Date(d+'T00:00:00Z').getUTCDay()];return `${y}年${+m}月${+dd}日 星期${w}`}
+const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function showDay(d){
+  const today=shDate();if(d>today)d=today;if(d<START)d=START;
+  stopSpeak();view='today';tab();cur=d;const b=bookFor(d);
+  $('#main').innerHTML=`
+  <div class="fs">字号 <button onclick="fz(-2)">A-</button><button onclick="fz(2)">A+</button></div>
+  <div class="card book"><div class="meta">${fmt(d)} · 第 ${dayIdx(d)+1} 天</div><h2 data-s>《${esc(b.title)}》</h2><div class="meta" data-s>作者：${esc(b.author)}<span class="tag">${esc(b.cat)}</span></div></div>
+  <div class="card"><h3>内容概述</h3><p data-s>${esc(b.overview)}</p></div>
+  <div class="card"><h3>重要观点</h3><ol>${b.points.map(p=>`<li data-s>${esc(p)}</li>`).join('')}</ol></div>
+  <div class="card"><h3>感悟</h3><p data-s>${esc(b.feeling)}</p></div>
+  <div class="card"><h3>启发 · 交易与生活</h3><p data-s>${esc(b.insight)}</p></div>
+  <div class="nav"><button onclick="go(-1)">← 前一天</button>${d<today?'<button onclick="go(1)">后一天 →</button>':''}</div>`;
+  scrollTo(0,0);$('#hdate').textContent='今天 '+fmt(today);
+  if(location.hash!=='#'+d)history.replaceState(null,'','#'+d);
+  $('#player').style.display='';
+}
+function go(n){showDay(addDays(cur,n))}
+function showArch(){
+  stopSpeak();view='arch';tab();const today=shDate();let h='';
+  for(let d=today;d>=START;d=addDays(d,-1)){const b=bookFor(d);h+=`<a href="#${d}" class="${d===today?'today':''}"><span>《${esc(b.title)}》</span><span class="d">${d.slice(5).replace('-','月')}日</span></a>`}
+  $('#main').innerHTML=`<div class="card arch"><h3>往期书单</h3>${h}</div>`;$('#player').style.display='none';
+}
+function tab(){$('#tToday').classList.toggle('on',view==='today');$('#tArch').classList.toggle('on',view==='arch')}
+$('#tToday').onclick=()=>{location.hash='';showDay(shDate())};$('#tArch').onclick=showArch;
+addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(/^\d{4}-\d\d-\d\d$/.test(h))showDay(h)});
+let fsz=+(localStorage.fz||20);document.body.style.fontSize=fsz+'px';
+function fz(n){fsz=Math.min(30,Math.max(16,fsz+n));localStorage.fz=fsz;document.body.style.fontSize=fsz+'px'}
+// ---- 朗读 ----
+const synth=window.speechSynthesis;let chunks=[],pos=0,state='idle',voice=null,token=0;
+function pickVoice(){if(!synth)return;const v=synth.getVoices();voice=v.find(x=>/zh[-_]CN/i.test(x.lang)&&/Ting|Tian|婷/i.test(x.name))||v.find(x=>/zh[-_]CN/i.test(x.lang))||v.find(x=>/^zh/i.test(x.lang))||null}
+if(synth){pickVoice();synth.onvoiceschanged=pickVoice}
+function build(){chunks=[];document.querySelectorAll('[data-s]').forEach(el=>{let t=el.textContent;const parts=t.match(/[^。！？；!?;]+[。！？；!?;”」]*/g)||[t];let buf='';parts.forEach(p=>{if((buf+p).length>80&&buf){chunks.push({el,t:buf});buf=p}else buf+=p});if(buf.trim())chunks.push({el,t:buf})})}
+function hl(el){document.querySelectorAll('.speaking').forEach(e=>e.classList.remove('speaking'));if(el){el.classList.add('speaking');el.scrollIntoView({block:'center',behavior:'smooth'})}}
+function speakFrom(i){
+  const my=++token;synth.cancel();pos=i;
+  if(pos>=chunks.length){finish();return}
+  const c=chunks[pos],u=new SpeechSynthesisUtterance(c.t);u.lang='zh-CN';if(voice)u.voice=voice;u.rate=+$('#speed').value;
+  u.onend=()=>{if(my!==token||state!=='play')return;speakFrom(pos+1)};
+  u.onerror=e=>{if(my!==token||state!=='play')return;if(e.error!=='interrupted'&&e.error!=='canceled')speakFrom(pos+1)};
+  hl(c.el);$('#status').textContent=`正在朗读 ${pos+1}/${chunks.length}`;
+  setTimeout(()=>{if(my===token)synth.speak(u)},60);
+}
+function finish(){state='idle';hl(null);$('#play').textContent='▶ 朗读';$('#status').textContent='读完了，明天见 🌿'}
+function stopSpeak(){token++;if(synth)synth.cancel();state='idle';pos=0;hl(null);$('#play').textContent='▶ 朗读';$('#status').textContent='点「朗读」听今天的书'}
+$('#play').onclick=()=>{
+  if(!synth){alert('这个浏览器不支持朗读，请用 iPhone 自带 Safari 打开');return}
+  if(state==='play'){state='pause';token++;synth.cancel();$('#play').textContent='▶ 继续';$('#status').textContent='已暂停';return}
+  if(state==='idle'){build();pos=0}
+  state='play';$('#play').textContent='❚❚ 暂停';speakFrom(pos);
+};
+$('#stop').onclick=stopSpeak;
+$('#speed').onchange=()=>{localStorage.rate=$('#speed').value;if(state==='play')speakFrom(pos)};
+if(localStorage.rate)$('#speed').value=localStorage.rate;
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&state==='play'){}});
+fetch('books.json',{cache:'no-cache'}).then(r=>r.json()).then(j=>{BOOKS=j;const h=location.hash.slice(1);/^\d{4}-\d\d-\d\d$/.test(h)?showDay(h):showDay(shDate())}).catch(()=>{$('#main').innerHTML='<div class="card">加载失败，请检查网络后刷新。</div>'});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
+</script>
+<footer>每天一本好书 · 愿老爹身体健康，心平气和</footer>
+</body>
+</html>

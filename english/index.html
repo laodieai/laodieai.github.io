@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>老爹英语 · 零基础美式英语 365 天</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%232f6fed'/><text x='32' y='44' font-size='34' text-anchor='middle' fill='white' font-family='sans-serif'>爹</text></svg>">
+<link rel="stylesheet" href="styles.css">
+<script src="https://unpkg.com/lucide@0.462.0/dist/umd/lucide.min.js" defer></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">爹</div>
+      <div>
+        <div class="brand-name">老爹英语</div>
+        <div class="brand-sub">美式英语 365 · 每天 1 小时</div>
+      </div>
+    </div>
+    <nav class="nav" id="nav">
+      <button class="nav-item" data-view="dashboard"><i data-lucide="home"></i><span>今日学习</span></button>
+      <button class="nav-item" data-view="map"><i data-lucide="map"></i><span>365 天课程地图</span></button>
+      <button class="nav-item" data-view="review"><i data-lucide="repeat"></i><span>复习中心</span><span class="nav-badge" id="reviewBadge" hidden></span></button>
+      <button class="nav-item" data-view="errors"><i data-lucide="x-circle"></i><span>错题本</span><span class="nav-badge warn" id="errorBadge" hidden></span></button>
+      <button class="nav-item" data-view="vocab"><i data-lucide="book-open"></i><span>词汇库</span></button>
+      <button class="nav-item" data-view="stats"><i data-lucide="trending-up"></i><span>能力报告</span></button>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="progress-mini">
+        <div class="progress-mini-label"><span id="footDay">Day 1</span><span id="footPct">0%</span></div>
+        <div class="progress-bar"><div class="progress-fill" id="footBar" style="width:0%"></div></div>
+      </div>
+    </div>
+  </aside>
+  <div class="main-wrap">
+    <header class="topbar">
+      <button class="icon-btn" id="menuBtn" aria-label="菜单"><i data-lucide="menu"></i></button>
+      <div class="topbar-title" id="topbarTitle">今日学习</div>
+      <div class="topbar-right">
+        <div class="rate-slider" id="rateSlider" title="朗读语速：拖到想要的百分比">
+          <i data-lucide="turtle"></i>
+          <input type="range" id="rateRange" min="40" max="110" step="5" value="70" aria-label="语速百分比">
+          <span id="ratePct">70%</span>
+        </div>
+        <div class="rate-toggle" id="repeatToggle" title="朗读遍数">
+          <button data-repeat="1" class="active">×1</button>
+          <button data-repeat="2">×2</button>
+          <button data-repeat="3">×3</button>
+        </div>
+        <div class="streak-chip" title="连续学习天数"><i data-lucide="flame"></i><span id="streakNum">0</span> 天</div>
+        <div class="date-chip" id="dateChip"></div>
+      </div>
+    </header>
+    <main class="main" id="view"></main>
+  </div>
+</div>
+<script src="js/data-map.js"></script>
+<script src="js/data-lessons-1.js"></script>
+<script src="js/data-lessons-2.js"></script>
+<script src="js/data-lessons-3.js"></script>
+<script src="js/data-gen-content.js"></script>
+<script src="js/data-gen-content2.js"></script>
+<script src="js/data-gen-content3.js"></script>
+<script src="js/data-gen-content4.js"></script>
+<script src="js/data-gen-content5.js"></script>
+<script src="js/lesson-builder.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

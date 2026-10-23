@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>老爹世界网站</title>
+<style>
+  :root {
+    --bg: #f4f5f6;
+    --surface: #ffffff;
+    --text: #1c1f24;
+    --text-2: #5c6470;
+    --border: #e4e7ea;
+    --accent: #0f8a6d;
+    --accent-soft: #e2f4ee;
+    --shadow: 0 1px 2px rgba(16, 24, 40, .05);
+    --shadow-hover: 0 4px 14px rgba(16, 24, 40, .10);
+  }
+  [data-theme="dark"] {
+    --bg: #14171b;
+    --surface: #1e2228;
+    --text: #e8eaee;
+    --text-2: #9aa3ae;
+    --border: #2c323a;
+    --accent: #3ec6a3;
+    --accent-soft: #173b32;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3);
+    --shadow-hover: 0 4px 14px rgba(0, 0, 0, .45);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; scroll-padding-top: 160px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    transition: background .25s, color .25s;
+  }
+
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .topbar-inner {
+    max-width: 1180px; margin: 0 auto;
+    padding: 12px 16px 10px;
+  }
+  .topbar-row {
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 9px;
+    font-size: 21px; font-weight: 700;
+    white-space: nowrap;
+    letter-spacing: 1px;
+  }
+  .brand .globe {
+    width: 34px; height: 34px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    filter: drop-shadow(0 2px 4px rgba(15, 138, 109, .3));
+  }
+  .theme-btn {
+    position: absolute; right: 0; top: 50%;
+    transform: translateY(-50%);
+    width: 40px; height: 40px; flex-shrink: 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text-2);
+    font-size: 17px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: color .15s, border-color .15s;
+  }
+  .theme-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+  .view-tabs {
+    display: flex;
+    width: fit-content;
+    margin: 10px auto 0;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .view-tab {
+    padding: 6px 18px;
+    font-size: 13.5px;
+    color: var(--text-2);
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .view-tab.active {
+    background: var(--surface);
+    color: var(--accent);
+    font-weight: 600;
+    box-shadow: var(--shadow);
+  }
+
+  .chips {
+    display: flex; gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding-bottom: 4px;
+  }
+  .chip {
+    flex-shrink: 0;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 13px;
+    font-size: 13.5px;
+    color: var(--text-2);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .chip .dot { width: 7px; height: 7px; border-radius: 50%; }
+  .chip:hover { color: var(--text); border-color: var(--text-2); }
+  .chip.active {
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+
+  main {
+    max-width: 1180px; margin: 0 auto;
+    padding: 22px 16px 60px;
+  }
+  .region-title {
+    font-size: 13px; font-weight: 700;
+    color: var(--text-2);
+    letter-spacing: 2px;
+    margin: 26px 0 6px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .region-title::after {
+    content: ""; flex: 1; height: 1px; background: var(--border);
+  }
+  .section { margin-bottom: 26px; }
+  .section-head {
+    display: flex; align-items: center; gap: 9px;
+    margin-bottom: 14px;
+  }
+  .section-head .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .section-head .flag { font-size: 19px; line-height: 1; }
+  .section-head h2 { font-size: 17px; font-weight: 700; }
+  .section-head .count { font-size: 13px; color: var(--text-2); }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 12px;
+  }
+  .card {
+    display: flex; align-items: center; gap: 11px;
+    padding: 13px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--text);
+    box-shadow: var(--shadow);
+    transition: box-shadow .18s, transform .18s, border-color .18s;
+    min-width: 0;
+  }
+  .card:hover {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-2px);
+    border-color: var(--accent);
+  }
+  .card .favicon {
+    width: 34px; height: 34px; flex-shrink: 0;
+    border-radius: 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    font-size: 15px; font-weight: 700; color: var(--accent);
+  }
+  .card .favicon img { width: 20px; height: 20px; }
+  .card .favicon.app-icon {
+    border: none; color: #fff; font-size: 17px; font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0,0,0,.18);
+  }
+  .card .info { min-width: 0; }
+  .card .name {
+    font-size: 14.5px; font-weight: 600;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .card .desc {
+    font-size: 12px; color: var(--text-2);
+    margin-top: 2px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .search-wrap { padding: 2px 0 8px; }
+  .search-input {
+    width: 100%; height: 40px;
+    padding: 0 14px 0 38px;
+    border: 1px solid var(--border); border-radius: 10px;
+    background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='17' height='17' viewBox='0 0 24 24' fill='none' stroke='%238a929c' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M21 21l-4.3-4.3'/%3E%3C/svg%3E") no-repeat 12px center;
+    color: var(--text); font-size: 15px; outline: none;
+    transition: border-color .15s, box-shadow .15s;
+    -webkit-appearance: none;
+  }
+  .search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .search-input::placeholder { color: var(--text-2); }
+  .search-input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+
+  .empty {
+    display: none;
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-2);
+  }
+  .empty .big { font-size: 40px; margin-bottom: 10px; }
+
+  footer {
+    max-width: 1180px; margin: 0 auto;
+    padding: 0 16px 40px;
+    color: var(--text-2); font-size: 13px;
+    text-align: center;
+  }
+
+  @media (max-width: 640px) {
+    .grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+    .brand { font-size: 17px; letter-spacing: 0; }
+    .topbar-inner { padding: 10px 12px 8px; transition: padding .2s; }
+    .topbar-row, .view-tabs { transition: all .2s ease; }
+    .chips {
+      flex-wrap: nowrap;
+      justify-content: flex-start;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      position: relative;
+      padding-left: 12px;
+      padding-right: 26px;
+      margin-left: -12px;
+      margin-right: -12px;
+      -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent 100%);
+      mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent 100%);
+    }
+    .chips::-webkit-scrollbar { display: none; }
+    .chips.at-end { -webkit-mask-image: none; mask-image: none; }
+    /* 下滑看内容或正在搜索时头部收缩，只留搜索和分类滑动条 */
+    .topbar.scrolled .topbar-row,
+    .topbar.scrolled .view-tabs,
+    .topbar.searching .topbar-row,
+    .topbar.searching .view-tabs { display: none; }
+    .topbar.scrolled .topbar-inner { padding-top: 8px; padding-bottom: 8px; }
+    .topbar.scrolled .search-wrap { margin-top: 0; }
+    .topbar.scrolled .chips { margin-top: 8px; }
+    main { padding: 16px 12px 50px; }
+    .section { scroll-margin-top: 108px; }
+    html { scroll-padding-top: 108px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-row">
+      <div class="brand">
+        <span class="brand-text">&#127464;&#127475; 老爹世界网站</span>
+      </div>
+      <button class="theme-btn" id="themeBtn" title="切换深色/浅色">&#9790;</button>
+    </div>
+    <div class="view-tabs" id="viewTabs">
+      <button class="view-tab active" data-view="category">按分类</button>
+      <button class="view-tab" data-view="country">按国家</button>
+    </div>
+    <div class="search-wrap">
+      <input id="searchInput" class="search-input" type="search"
+             placeholder="搜索全部网站，如：特斯拉 / 台风 / 发音 / 银行" autocomplete="off">
+    </div>
+    <div class="chips" id="chips"></div>
+  </div>
+</div>
+
+<main id="main"></main>
+<div class="empty" id="empty">
+  <div class="big">&#128269;</div>
+  <p>没有找到匹配的网站，换个关键词试试</p>
+</div>
+
+<footer>老爹世界网站 · <span id="total"></span></footer>
+
+<script>
+/* ==================== 按分类数据 ==================== */
+const CATEGORIES = [
+  { id: "mine",     name: "我的网站", color: "#b8860b" },
+  { id: "company",  name: "全球名企", color: "#37474f" },
+  { id: "treasure", name: "宝藏网站", color: "#c47b12" },
+  { id: "search",   name: "搜索引擎", color: "#0f8a6d" },
+  { id: "ai",       name: "AI 工具",  color: "#7c5cbf" },
+  { id: "social",   name: "社交媒体", color: "#d0552f" },
+  { id: "video",    name: "视频直播", color: "#c2185b" },
+  { id: "music",    name: "音乐音频", color: "#5c6bc0" },
+  { id: "shop",     name: "购物电商", color: "#e65100" },
+  { id: "news",     name: "新闻资讯", color: "#0277bd" },
+  { id: "tools",    name: "工具效率", color: "#558b2f" },
+  { id: "travel",   name: "旅游出行", color: "#00838f" },
+  { id: "learn",    name: "学习知识", color: "#3f51b5" },
+  { id: "finance",  name: "金融理财", color: "#a31545" },
+  { id: "game",     name: "游戏娱乐", color: "#6a329f" },
+  { id: "life",     name: "生活服务", color: "#4e6e58" }
+];
+
+const SITES = [
+  { c: "mine", name: "老爹学古诗", url: "gushi/", desc: "365 天古诗学习计划", icon: "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%231f524a%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%232e7d64%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22url%28%23g%29%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2245%22%20font-size%3D%2234%22%20text-anchor%3D%22middle%22%20fill%3D%22%23fff%22%20font-family%3D%22PingFang%20SC%2CMicrosoft%20YaHei%2Csans-serif%22%20font-weight%3D%22700%22%3E%E8%AF%97%3C/text%3E%3C/svg%3E" },
+  { c: "mine", name: "老爹英语", url: "english/", desc: "零基础美式英语 365 天", icon: "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%232f6fed%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%235b8ff0%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22url%28%23g%29%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2245%22%20font-size%3D%2234%22%20text-anchor%3D%22middle%22%20fill%3D%22%23fff%22%20font-family%3D%22PingFang%20SC%2CMicrosoft%20YaHei%2Csans-serif%22%20font-weight%3D%22700%22%3E%E8%8B%B1%3C/text%3E%3C/svg%3E" },
+  { c: "mine", name: "老爹单词库", url: "words/", desc: "单词库 365 天", icon: "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23c26d1b%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23e08f2e%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22url%28%23g%29%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2245%22%20font-size%3D%2234%22%20text-anchor%3D%22middle%22%20fill%3D%22%23fff%22%20font-family%3D%22PingFang%20SC%2CMicrosoft%20YaHei%2Csans-serif%22%20font-weight%3D%22700%22%3E%E8%AF%8D%3C/text%3E%3C/svg%3E" },
+  { c: "mine", name: "老爹每日读书", url: "dushu/", desc: "每天精读一本好书（可朗读）", icon: "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%227a3e1d%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22b8860b%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22url%28%23g%29%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2245%22%20font-size%3D%2234%22%20text-anchor%3D%22middle%22%20fill%3D%22%23fff%22%20font-family%3D%22PingFang%20SC%2CMicrosoft%20YaHei%2Csans-serif%22%20font-weight%3D%22700%22%3E%E8%AF%BB%3C/text%3E%3C/svg%3E" },
+  { c: "mine", name: "老爹运动健康", url: "https://8c9204ec8f624394.flypod.page/", desc: "运动健康打卡", icon: "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%220f7a4a%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%223cb371%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22url%28%23g%29%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2245%22%20font-size%3D%2234%22%20text-anchor%3D%22middle%22%20fill%3D%22%23fff%22%20font-family%3D%22PingFang%20SC%2CMicrosoft%20YaHei%2Csans-serif%22%20font-weight%3D%22700%22%3E%E5%81%A5%3C/text%3E%3C/svg%3E" },
+
+  { c: "treasure", name: "Windy 气象风图", url: "https://www.windy.com", desc: "全球气象风图，看台风路径神器" },
+  { c: "treasure", name: "Zoom Earth", url: "https://zoom.earth", desc: "实时卫星云图与风暴追踪" },
+  { c: "treasure", name: "今日热榜", url: "https://tophub.today", desc: "各平台热门榜单一站看全" },
+  { c: "treasure", name: "Flightradar24", url: "https://www.flightradar24.com", desc: "全球航班实时轨迹" },
+  { c: "treasure", name: "Wolfram Alpha", url: "https://www.wolframalpha.com", desc: "数学计算与知识引擎" },
+  { c: "treasure", name: "中国国家图书馆", url: "http://www.nlc.cn", desc: "国家数字图书馆与典籍博物馆" },
+  { c: "treasure", name: "Unsplash", url: "https://unsplash.com", desc: "免费高清摄影图片" },
+  { c: "treasure", name: "Pexels", url: "https://www.pexels.com", desc: "免费图片和视频素材" },
+  { c: "treasure", name: "Pixabay", url: "https://pixabay.com", desc: "免费图片素材库" },
+  { c: "treasure", name: "VirusTotal", url: "https://www.virustotal.com", desc: "文件和网址多引擎查毒" },
+  { c: "treasure", name: "邮箱泄露查询", url: "https://haveibeenpwned.com", desc: "查邮箱账号有没有泄露" },
+  { c: "treasure", name: "Temp Mail", url: "https://temp-mail.org", desc: "一次性临时邮箱" },
+  { c: "treasure", name: "Convertio", url: "https://convertio.co", desc: "万能文件格式转换" },
+  { c: "treasure", name: "XE 汇率", url: "https://www.xe.com", desc: "全球实时汇率换算" },
+  { c: "treasure", name: "time.is", url: "https://time.is", desc: "精确时间与世界时钟" },
+  { c: "treasure", name: "奶牛快传", url: "https://cowtransfer.com", desc: "大文件临时互传" },
+  { c: "treasure", name: "Downdetector", url: "https://downdetector.com", desc: "查网站和 App 是不是挂了" },
+  { c: "treasure", name: "AlternativeTo", url: "https://alternativeto.net", desc: "找软件的免费替代品" },
+  { c: "treasure", name: "Forvo", url: "https://forvo.com", desc: "母语者真人单词发音" },
+  { c: "treasure", name: "每日英语听力", url: "https://www.eudic.net", desc: "欧路词典与英语听力" },
+  { c: "treasure", name: "剑桥词典", url: "https://dictionary.cambridge.org", desc: "权威英汉双解词典" },
+  { c: "treasure", name: "Etymonline", url: "https://www.etymonline.com", desc: "英语单词词源字典" },
+  { c: "treasure", name: "Hemingway", url: "https://hemingwayapp.com", desc: "英文句子润色打分" },
+  { c: "treasure", name: "汉典", url: "https://www.zdic.net", desc: "汉语字典与古文查询" },
+  { c: "treasure", name: "书格", url: "https://shuge.org", desc: "自由古籍善本图书馆" },
+  { c: "treasure", name: "全历史", url: "https://www.allhistory.com", desc: "历史人物关系图谱" },
+  { c: "treasure", name: "诗词吾爱", url: "https://www.52shici.com", desc: "诗词格律与押韵检测" },
+  { c: "treasure", name: "识典古籍", url: "https://www.shidianguji.com", desc: "古籍全文检索与阅读" },
+  { c: "treasure", name: "数字敦煌", url: "https://www.e-dunhuang.com", desc: "敦煌洞窟壁画高清漫游" },
+  { c: "treasure", name: "中华珍宝馆", url: "https://www.ltfc.net", desc: "中国历代高清书画在线欣赏" },
+  { c: "treasure", name: "故宫博物院", url: "https://www.dpm.org.cn", desc: "北京故宫官网与数字文物" },
+  { c: "treasure", name: "历史上的今天", url: "https://www.lssdjt.com", desc: "每天回看历史大事" },
+  { c: "treasure", name: "果汁排行榜", url: "http://guozhivip.com", desc: "各类热门榜单大全" },
+  { c: "treasure", name: "虫部落", url: "https://www.chongbuluo.com", desc: "学术与资源搜索导航" },
+  { c: "treasure", name: "wikiHow 生活万事通", url: "https://zh.wikihow.com", desc: "任何事的图文步骤教程" },
+  { c: "treasure", name: "果壳", url: "https://www.guokr.com", desc: "科学科普与生活辟谣" },
+  { c: "treasure", name: "Noisli", url: "https://www.noisli.com", desc: "白噪音专注与助眠" },
+
+  { c: "company", name: "苹果", url: "https://www.apple.com.cn", desc: "Apple 中国官网" },
+  { c: "company", name: "特斯拉", url: "https://www.tesla.cn", desc: "Tesla 中国官网" },
+  { c: "company", name: "微软", url: "https://www.microsoft.com/zh-cn", desc: "Microsoft 中国官网" },
+  { c: "company", name: "荣耀", url: "https://www.honor.com/cn/", desc: "荣耀手机与 AI 终端官网" },
+  { c: "company", name: "三星", url: "https://www.samsung.com/cn/", desc: "Samsung 中国官网" },
+  { c: "company", name: "索尼", url: "https://www.sony.com.cn", desc: "Sony 中国官网" },
+  { c: "company", name: "丰田", url: "https://www.toyota.com.cn", desc: "Toyota 中国官网" },
+  { c: "company", name: "波音", url: "https://www.boeing.com", desc: "Boeing 飞机制造商" },
+  { c: "company", name: "SpaceX", url: "https://www.spacex.com", desc: "马斯克太空公司" },
+  { c: "company", name: "华为", url: "https://www.huawei.com/cn/", desc: "华为中国官网" },
+  { c: "company", name: "腾讯", url: "https://www.tencent.com/zh-cn", desc: "腾讯控股官网" },
+  { c: "company", name: "阿里巴巴", url: "https://www.alibabagroup.com", desc: "阿里巴巴集团官网" },
+  { c: "company", name: "小米", url: "https://www.mi.com", desc: "小米官网" },
+  { c: "company", name: "比亚迪", url: "https://www.byd.com/cn", desc: "比亚迪官网" },
+  { c: "company", name: "字节跳动", url: "https://www.bytedance.com/cn/", desc: "抖音今日头条母公司" },
+  { c: "company", name: "宁德时代", url: "https://www.catl.com", desc: "动力电池巨头" },
+  { c: "company", name: "贵州茅台", url: "https://www.moutaichina.com", desc: "茅台酒股份官网" },
+
+  { c: "search", name: "Google",       url: "https://www.google.com",    desc: "全球最大搜索引擎" },
+  { c: "search", name: "Bing",         url: "https://www.bing.com",      desc: "微软搜索引擎" },
+  { c: "search", name: "百度",          url: "https://www.baidu.com",     desc: "中国最大的搜索引擎" },
+  { c: "search", name: "DuckDuckGo",   url: "https://duckduckgo.com",    desc: "注重隐私的搜索引擎" },
+  { c: "search", name: "Yandex",       url: "https://yandex.com",        desc: "俄罗斯搜索引擎" },
+  { c: "search", name: "Naver",        url: "https://www.naver.com",     desc: "韩国最大门户网站" },
+  { c: "search", name: "Yahoo",        url: "https://www.yahoo.com",     desc: "老牌门户与搜索" },
+  { c: "search", name: "搜狗",          url: "https://www.sogou.com",     desc: "中文搜索引擎" },
+  { c: "search", name: "Ecosia",       url: "https://www.ecosia.org",    desc: "搜索即可种树的引擎" },
+  { c: "search", name: "360搜索",      url: "https://www.so.com",        desc: "国内搜索引擎" },
+  { c: "search", name: "Startpage",    url: "https://www.startpage.com", desc: "匿名隐私搜索" },
+
+  { c: "ai", name: "ChatGPT",      url: "https://chatgpt.com",          desc: "OpenAI 对话助手" },
+  { c: "ai", name: "Claude",       url: "https://claude.ai",            desc: "Anthropic 对话助手" },
+  { c: "ai", name: "Gemini",       url: "https://gemini.google.com",    desc: "Google AI 助手" },
+  { c: "ai", name: "Copilot",      url: "https://copilot.microsoft.com", desc: "微软 AI 助手" },
+  { c: "ai", name: "Perplexity",   url: "https://www.perplexity.ai",    desc: "AI 搜索问答" },
+  { c: "ai", name: "DeepSeek",     url: "https://chat.deepseek.com",    desc: "深度求索 AI 助手" },
+  { c: "ai", name: "Kimi",         url: "https://www.kimi.com",         desc: "月之暗面 AI 助手" },
+  { c: "ai", name: "豆包",          url: "https://www.doubao.com",       desc: "字节跳动 AI 助手" },
+  { c: "ai", name: "通义千问",      url: "https://www.tongyi.com",       desc: "阿里云 AI 助手" },
+  { c: "ai", name: "Midjourney",   url: "https://www.midjourney.com",   desc: "AI 绘画创作" },
+  { c: "ai", name: "文心一言",      url: "https://yiyan.baidu.com",      desc: "百度 AI 助手" },
+  { c: "ai", name: "讯飞星火",      url: "https://xinghuo.xfyun.cn",     desc: "科大讯飞 AI 助手" },
+  { c: "ai", name: "Grok",         url: "https://grok.com",             desc: "xAI 对话助手" },
+  { c: "ai", name: "Poe",          url: "https://poe.com",              desc: "多模型 AI 聚合平台" },
+  { c: "ai", name: "Hugging Face", url: "https://huggingface.co",       desc: "开源 AI 模型社区" },
+  { c: "ai", name: "即梦",          url: "https://jimeng.jianying.com",  desc: "字节 AI 绘画视频" },
+  { c: "ai", name: "可灵",          url: "https://klingai.com",          desc: "快手 AI 视频生成" },
+  { c: "ai", name: "Sora",         url: "https://sora.com",             desc: "OpenAI 视频生成" },
+  { c: "ai", name: "元宝",          url: "https://yuanbao.tencent.com",  desc: "腾讯 AI 助手" },
+  { c: "ai", name: "Mistral",      url: "https://chat.mistral.ai",      desc: "法国 AI 助手" },
+
+  { c: "social", name: "X (Twitter)", url: "https://x.com",               desc: "全球实时社交平台" },
+  { c: "social", name: "Facebook",    url: "https://www.facebook.com",    desc: "全球最大社交网络" },
+  { c: "social", name: "Instagram",   url: "https://www.instagram.com",   desc: "图片与短视频分享" },
+  { c: "social", name: "Reddit",      url: "https://www.reddit.com",      desc: "全球兴趣社区" },
+  { c: "social", name: "LinkedIn",    url: "https://www.linkedin.com",    desc: "职场社交网络" },
+  { c: "social", name: "Threads",     url: "https://www.threads.net",     desc: "Meta 文字社交" },
+  { c: "social", name: "Telegram",    url: "https://web.telegram.org",    desc: "即时通讯工具" },
+  { c: "social", name: "WhatsApp",    url: "https://web.whatsapp.com",    desc: "全球主流聊天工具" },
+  { c: "social", name: "Discord",     url: "https://discord.com",         desc: "游戏与社群聊天" },
+  { c: "social", name: "微博",         url: "https://weibo.com",           desc: "中文热点社交平台" },
+  { c: "social", name: "小红书",       url: "https://www.xiaohongshu.com", desc: "生活方式分享社区" },
+  { c: "social", name: "知乎",         url: "https://www.zhihu.com",       desc: "中文问答社区" },
+  { c: "social", name: "豆瓣",         url: "https://www.douban.com",      desc: "书影音兴趣社区" },
+  { c: "social", name: "Pinterest",   url: "https://www.pinterest.com",   desc: "灵感图片收藏" },
+  { c: "social", name: "Snapchat",    url: "https://www.snapchat.com",    desc: "阅后即焚社交" },
+  { c: "social", name: "Quora",       url: "https://www.quora.com",       desc: "英文问答社区" },
+  { c: "social", name: "贴吧",         url: "https://tieba.baidu.com",     desc: "中文兴趣社区" },
+  { c: "social", name: "Tumblr",      url: "https://www.tumblr.com",      desc: "轻博客社区" },
+  { c: "social", name: "Bluesky",     url: "https://bsky.app",            desc: "去中心化社交" },
+
+  { c: "video", name: "YouTube",    url: "https://www.youtube.com",    desc: "全球最大视频平台" },
+  { c: "video", name: "Bilibili",   url: "https://www.bilibili.com",   desc: "哔哩哔哩弹幕视频" },
+  { c: "video", name: "Netflix",    url: "https://www.netflix.com",    desc: "全球流媒体影视" },
+  { c: "video", name: "TikTok",     url: "https://www.tiktok.com",     desc: "国际版短视频" },
+  { c: "video", name: "抖音",        url: "https://www.douyin.com",     desc: "短视频平台" },
+  { c: "video", name: "Twitch",     url: "https://www.twitch.tv",      desc: "游戏直播平台" },
+  { c: "video", name: "腾讯视频",    url: "https://v.qq.com",          desc: "国内影视综艺" },
+  { c: "video", name: "爱奇艺",      url: "https://www.iqiyi.com",      desc: "国内影视综艺" },
+  { c: "video", name: "Vimeo",      url: "https://vimeo.com",          desc: "高质量创意视频" },
+  { c: "video", name: "优酷",        url: "https://youku.com",         desc: "国内影视综艺" },
+  { c: "video", name: "芒果TV",     url: "https://www.mgtv.com",      desc: "湖南卫视视频平台" },
+  { c: "video", name: "快手",        url: "https://www.kuaishou.com",  desc: "短视频与直播" },
+  { c: "video", name: "Disney+",   url: "https://www.disneyplus.com", desc: "迪士尼流媒体" },
+  { c: "video", name: "西瓜视频",    url: "https://www.ixigua.com",    desc: "中视频平台" },
+  { c: "video", name: "央视网",      url: "https://www.cctv.com",      desc: "中央电视台官网" },
+  { c: "video", name: "HBO Max",   url: "https://www.max.com",        desc: "美剧流媒体" },
+  { c: "video", name: "Prime Video", url: "https://www.primevideo.com", desc: "亚马逊流媒体" },
+
+  { c: "music", name: "Spotify",       url: "https://open.spotify.com",   desc: "全球音乐流媒体" },
+  { c: "music", name: "Apple Music",   url: "https://music.apple.com",    desc: "苹果音乐服务" },
+  { c: "music", name: "YouTube Music", url: "https://music.youtube.com",  desc: "YouTube 音乐" },
+  { c: "music", name: "SoundCloud",    url: "https://soundcloud.com",     desc: "独立音乐社区" },
+  { c: "music", name: "网易云音乐",    url: "https://music.163.com",      desc: "中文音乐社区" },
+  { c: "music", name: "QQ 音乐",       url: "https://y.qq.com",           desc: "腾讯音乐平台" },
+  { c: "music", name: "酷狗音乐",      url: "https://www.kugou.com",      desc: "国内音乐平台" },
+  { c: "music", name: "喜马拉雅",      url: "https://www.ximalaya.com",   desc: "有声书与播客" },
+  { c: "music", name: "Tidal",         url: "https://tidal.com",          desc: "高音质音乐服务" },
+  { c: "music", name: "酷我音乐",      url: "https://www.kuwo.cn",        desc: "国内音乐平台" },
+  { c: "music", name: "荔枝播客",      url: "https://www.lizhi.fm",       desc: "中文播客平台" },
+  { c: "music", name: "小宇宙",        url: "https://www.xiaoyuzhoufm.com", desc: "中文播客社区" },
+
+  { c: "shop", name: "Amazon",     url: "https://www.amazon.com",      desc: "全球最大电商平台" },
+  { c: "shop", name: "eBay",       url: "https://www.ebay.com",        desc: "全球拍卖购物" },
+  { c: "shop", name: "AliExpress", url: "https://www.aliexpress.com",  desc: "全球速卖通" },
+  { c: "shop", name: "淘宝",        url: "https://www.taobao.com",      desc: "国内综合电商" },
+  { c: "shop", name: "京东",        url: "https://www.jd.com",          desc: "国内自营电商" },
+  { c: "shop", name: "拼多多",      url: "https://www.pinduoduo.com",   desc: "团购电商平台" },
+  { c: "shop", name: "Shopee",     url: "https://shopee.com",          desc: "东南亚电商" },
+  { c: "shop", name: "Rakuten",    url: "https://www.rakuten.co.jp",   desc: "日本乐天市场" },
+  { c: "shop", name: "Walmart",    url: "https://www.walmart.com",     desc: "沃尔玛线上商城" },
+  { c: "shop", name: "Etsy",       url: "https://www.etsy.com",        desc: "手工艺品市场" },
+  { c: "shop", name: "天猫",        url: "https://www.tmall.com",       desc: "品牌官方商城" },
+  { c: "shop", name: "闲鱼",        url: "https://www.goofish.com",     desc: "二手闲置交易" },
+  { c: "shop", name: "唯品会",      url: "https://www.vip.com",         desc: "品牌特卖电商" },
+  { c: "shop", name: "Costco",     url: "https://www.costco.com",      desc: "会员制仓储超市" },
+  { c: "shop", name: "Best Buy",   url: "https://www.bestbuy.com",     desc: "电子产品零售" },
+  { c: "shop", name: "山姆会员店",   url: "https://www.samsclub.cn",    desc: "会员制精选超市" },
+  { c: "shop", name: "宜家",        url: "https://www.ikea.com",       desc: "家居家具商城" },
+  { c: "shop", name: "SHEIN",      url: "https://www.shein.com",       desc: "快时尚跨境电商" },
+  { c: "shop", name: "Temu",       url: "https://www.temu.com",        desc: "拼多多海外版" },
+
+  { c: "news", name: "BBC",          url: "https://www.bbc.com",         desc: "英国广播公司新闻" },
+  { c: "news", name: "CNN",          url: "https://www.cnn.com",         desc: "美国有线电视新闻" },
+  { c: "news", name: "Reuters",      url: "https://www.reuters.com",     desc: "路透社全球新闻" },
+  { c: "news", name: "The Guardian", url: "https://www.theguardian.com", desc: "英国卫报" },
+  { c: "news", name: "NHK",          url: "https://www.nhk.or.jp",       desc: "日本放送协会" },
+  { c: "news", name: "Google News",  url: "https://news.google.com",     desc: "聚合全球新闻" },
+  { c: "news", name: "澎湃新闻",      url: "https://www.thepaper.cn",    desc: "中文时政财经新闻" },
+  { c: "news", name: "财新网",        url: "https://www.caixin.com",      desc: "财经新闻与数据" },
+  { c: "news", name: "联合早报",      url: "https://www.zaobao.com",     desc: "新加坡华文新闻" },
+  { c: "news", name: "新华网",        url: "https://www.news.cn",         desc: "新华社官方新闻" },
+  { c: "news", name: "凤凰网",        url: "https://www.ifeng.com",      desc: "综合新闻门户" },
+  { c: "news", name: "今日头条",      url: "https://www.toutiao.com",    desc: "个性化资讯平台" },
+  { c: "news", name: "Bloomberg",    url: "https://www.bloomberg.com",   desc: "彭博财经新闻" },
+  { c: "news", name: "FT 金融时报",   url: "https://www.ft.com",          desc: "英国金融时报" },
+  { c: "news", name: "Al Jazeera",   url: "https://www.aljazeera.com",   desc: "半岛电视台" },
+  { c: "news", name: "人民日报",      url: "https://www.people.com.cn",  desc: "中央主流报纸" },
+  { c: "news", name: "央视新闻网",    url: "https://news.cctv.com",      desc: "央视新闻门户" },
+  { c: "news", name: "36氪",         url: "https://36kr.com",           desc: "科技创业资讯" },
+  { c: "news", name: "少数派",        url: "https://sspai.com",          desc: "数字生活指南" },
+  { c: "news", name: "虎嗅",         url: "https://www.huxiu.com",      desc: "商业科技媒体" },
+  { c: "news", name: "The Verge",    url: "https://www.theverge.com",    desc: "科技媒体" },
+  { c: "news", name: "NYTimes",      url: "https://www.nytimes.com",     desc: "纽约时报" },
+
+  { c: "tools", name: "Google 翻译",  url: "https://translate.google.com", desc: "多语言在线翻译" },
+  { c: "tools", name: "DeepL",        url: "https://www.deepl.com",       desc: "高质量 AI 翻译" },
+  { c: "tools", name: "Gmail",        url: "https://mail.google.com",     desc: "Google 邮箱" },
+  { c: "tools", name: "Outlook",      url: "https://outlook.live.com",    desc: "微软邮箱日历" },
+  { c: "tools", name: "Google Drive", url: "https://drive.google.com",    desc: "云端存储与文档" },
+  { c: "tools", name: "Dropbox",      url: "https://www.dropbox.com",     desc: "云存储同步" },
+  { c: "tools", name: "Notion",       url: "https://www.notion.so",       desc: "笔记与协作" },
+  { c: "tools", name: "GitHub",       url: "https://github.com",          desc: "代码托管平台" },
+  { c: "tools", name: "Wikipedia",    url: "https://www.wikipedia.org",   desc: "自由百科全书" },
+  { c: "tools", name: "Figma",        url: "https://www.figma.com",       desc: "在线设计协作" },
+  { c: "tools", name: "Canva",        url: "https://www.canva.com",       desc: "在线平面设计" },
+  { c: "tools", name: "有道翻译",      url: "https://fanyi.youdao.com",   desc: "网易翻译词典" },
+  { c: "tools", name: "腾讯文档",      url: "https://docs.qq.com",        desc: "在线协作文档" },
+  { c: "tools", name: "百度网盘",      url: "https://pan.baidu.com",      desc: "国内云存储" },
+  { c: "tools", name: "Trello",       url: "https://trello.com",         desc: "看板任务管理" },
+  { c: "tools", name: "Zoom",         url: "https://zoom.us",            desc: "视频会议" },
+  { c: "tools", name: "金山文档",      url: "https://www.kdocs.cn",      desc: "WPS 在线文档" },
+  { c: "tools", name: "飞书",         url: "https://www.feishu.cn",      desc: "一站式协作办公" },
+  { c: "tools", name: "Slack",       url: "https://slack.com",           desc: "团队沟通协作" },
+  { c: "treasure", name: "iLovePDF",    url: "https://www.ilovepdf.com",    desc: "PDF 在线工具箱" },
+  { c: "treasure", name: "TinyPNG",     url: "https://tinypng.com",         desc: "图片在线压缩" },
+  { c: "treasure", name: "remove.bg",   url: "https://www.remove.bg",       desc: "一键抠图去背景" },
+
+  { c: "travel", name: "Google Maps", url: "https://maps.google.com",    desc: "全球地图导航" },
+  { c: "travel", name: "高德地图",    url: "https://www.amap.com",       desc: "国内地图导航" },
+  { c: "travel", name: "Booking",    url: "https://www.booking.com",    desc: "全球酒店预订" },
+  { c: "travel", name: "Airbnb",     url: "https://www.airbnb.com",     desc: "民宿短租平台" },
+  { c: "travel", name: "携程",        url: "https://www.ctrip.com",      desc: "机票酒店旅游" },
+  { c: "travel", name: "Skyscanner", url: "https://www.skyscanner.com", desc: "全球机票比价" },
+  { c: "travel", name: "Uber",       url: "https://www.uber.com",       desc: "全球打车服务" },
+  { c: "travel", name: "12306",      url: "https://www.12306.cn",       desc: "中国铁路购票" },
+  { c: "travel", name: "飞猪",        url: "https://www.fliggy.com",     desc: "阿里旅行平台" },
+  { c: "travel", name: "去哪儿",      url: "https://www.qunar.com",      desc: "机票酒店比价" },
+  { c: "travel", name: "TripAdvisor", url: "https://www.tripadvisor.com", desc: "全球旅行点评" },
+  { c: "travel", name: "滴滴出行",    url: "https://www.didiglobal.com", desc: "打车出行服务" },
+  { c: "travel", name: "航旅纵横",    url: "https://www.umetrip.com",    desc: "航班动态查询" },
+  { c: "travel", name: "Agoda",      url: "https://www.agoda.com",      desc: "亚洲酒店预订" },
+  { c: "travel", name: "Expedia",    url: "https://www.expedia.com",    desc: "全球旅游预订" },
+
+  { c: "learn", name: "中国大学MOOC", url: "https://www.icourse163.org", desc: "国内高校公开课" },
+  { c: "learn", name: "Coursera",    url: "https://www.coursera.org",   desc: "全球名校课程" },
+  { c: "learn", name: "Khan Academy", url: "https://www.khanacademy.org", desc: "免费全科学习" },
+  { c: "learn", name: "TED",         url: "https://www.ted.com",        desc: "思想演讲视频" },
+  { c: "learn", name: "网易公开课",   url: "https://open.163.com",      desc: "国内外名校课程" },
+  { c: "learn", name: "Duolingo",    url: "https://www.duolingo.com",   desc: "免费学外语" },
+  { c: "learn", name: "得到",         url: "https://www.dedao.cn",       desc: "知识服务平台" },
+  { c: "learn", name: "edX",         url: "https://www.edx.org",        desc: "哈佛 MIT 在线课" },
+  { c: "learn", name: "B站课堂",     url: "https://www.bilibili.com/cheese", desc: "哔哩哔哩付费课程" },
+  { c: "learn", name: "学堂在线",    url: "https://www.xuetangx.com",   desc: "清华发起慕课" },
+  { c: "learn", name: "可汗儿童",    url: "https://learn.khanacademy.org/khan-academy-kids/", desc: "儿童免费学习" },
+  { c: "learn", name: "Oeasy",       url: "https://oeasy.org",          desc: "免费软件教程" },
+
+  { c: "finance", name: "东方财富",   url: "https://www.eastmoney.com", desc: "股票基金行情" },
+  { c: "finance", name: "同花顺",     url: "https://www.10jqka.com.cn", desc: "炒股行情软件" },
+  { c: "finance", name: "雪球",       url: "https://xueqiu.com",        desc: "投资者社区" },
+  { c: "finance", name: "天天基金",   url: "https://fund.eastmoney.com", desc: "基金交易平台" },
+  { c: "finance", name: "TradingView", url: "https://www.tradingview.com", desc: "全球行情图表" },
+  { c: "finance", name: "Investing.com", url: "https://www.investing.com", desc: "全球财经数据" },
+  { c: "finance", name: "新浪财经",   url: "https://finance.sina.com.cn", desc: "财经资讯行情" },
+  { c: "finance", name: "财联社",     url: "https://www.cls.cn",        desc: "快速财经电报" },
+  { c: "finance", name: "华尔街见闻", url: "https://wallstreetcn.com",   desc: "全球宏观资讯" },
+  { c: "finance", name: "富途牛牛",   url: "https://www.futunn.com",    desc: "港美股行情" },
+  { c: "finance", name: "Yahoo 财经", url: "https://finance.yahoo.com", desc: "美股行情资讯" },
+
+  { c: "game", name: "Steam",      url: "https://store.steampowered.com", desc: "最大 PC 游戏平台" },
+  { c: "game", name: "Epic Games", url: "https://store.epicgames.com",    desc: "游戏商城喜加一" },
+  { c: "game", name: "TapTap",     url: "https://www.taptap.cn",          desc: "手游社区平台" },
+  { c: "game", name: "游民星空",   url: "https://www.gamersky.com",       desc: "游戏资讯攻略" },
+  { c: "game", name: "IGN",        url: "https://www.ign.com",            desc: "游戏媒体评测" },
+  { c: "game", name: "3DMGAME",    url: "https://www.3dmgame.com",        desc: "单机游戏门户" },
+  { c: "game", name: "NGA",        url: "https://bbs.nga.cn",             desc: "玩家社区论坛" },
+  { c: "game", name: "机核",       url: "https://www.gcores.com",         desc: "游戏文化媒体" },
+  { c: "game", name: "Switch 官网", url: "https://www.nintendo.com",     desc: "任天堂官方" },
+
+  { c: "life", name: "美团",       url: "https://www.meituan.com",       desc: "外卖团购生活" },
+  { c: "life", name: "大众点评",   url: "https://www.dianping.com",      desc: "商户点评指南" },
+  { c: "life", name: "饿了么",     url: "https://www.ele.me",            desc: "外卖订餐平台" },
+  { c: "life", name: "58同城",     url: "https://www.58.com",            desc: "分类信息服务" },
+  { c: "life", name: "贝壳找房",   url: "https://www.ke.com",            desc: "房产交易平台" },
+  { c: "life", name: "下厨房",     url: "https://www.xiachufang.com",    desc: "菜谱美食社区" },
+  { c: "life", name: "Keep",       url: "https://www.gotokeep.com",      desc: "健身运动应用" },
+  { c: "life", name: "丁香医生",   url: "https://dxy.com",               desc: "健康医疗科普" },
+  { c: "life", name: "顺丰速运",   url: "https://www.sf-express.com",    desc: "快递查询寄件" },
+  { c: "life", name: "中国移动",   url: "https://www.10086.cn",          desc: "话费流量办理" },
+  { c: "life", name: "铁路 12306", url: "https://www.12306.cn",          desc: "火车票官方购票" },
+  { c: "life", name: "天气网",     url: "https://www.weather.com.cn",    desc: "中国天气查询" },
+  { c: "life", name: "公积金查询", url: "https://www.gov.cn/fuwu/bm/gjj/", desc: "政务服务入口" },
+  { c: "life", name: "国家政务服务平台", url: "https://gjzwfw.www.gov.cn", desc: "一网通办总入口" },
+  { c: "life", name: "交管12123", url: "https://gab.122.gov.cn",       desc: "驾照违章处理" },
+  { c: "life", name: "个人所得税", url: "https://etax.chinatax.gov.cn",  desc: "个税申报查询" },
+  { c: "life", name: "学信网",     url: "https://www.chsi.com.cn",      desc: "学历学籍查询" },
+  { c: "life", name: "中国邮政",   url: "https://www.chinapost.com.cn", desc: "邮政快递查询" },
+  { c: "life", name: "中通快递",   url: "https://www.zto.com",          desc: "快递查询寄件" },
+  { c: "life", name: "圆通速递",   url: "https://www.yto.net.cn",       desc: "快递查询寄件" },
+  { c: "life", name: "货拉拉",     url: "https://www.huolala.cn",       desc: "搬家货运平台" },
+  { c: "life", name: "闪送",       url: "https://www.ishansong.com",    desc: "同城急送" },
+  { c: "life", name: "达美乐披萨", url: "https://www.dominos.com.cn",   desc: "披萨外送" },
+  { c: "life", name: "星巴克",     url: "https://www.starbucks.com.cn", desc: "咖啡官网" },
+  { c: "life", name: "麦当劳",     url: "https://www.mcdonalds.com.cn", desc: "官网点餐优惠" },
+  { c: "life", name: "肯德基",     url: "https://www.kfc.com.cn",       desc: "官网点餐优惠" },
+  { c: "life", name: "瑞幸咖啡",   url: "https://www.lkcoffee.com",     desc: "咖啡官网" },
+  { c: "life", name: "海底捞",     url: "https://www.haidilao.com",     desc: "火锅排队订餐" },
+  { c: "life", name: "宠物家",     url: "https://www.petkit.com",       desc: "宠物智能用品" },
+  { c: "life", name: "咕咚运动",   url: "https://www.codoon.com",       desc: "跑步运动记录" },
+  { c: "life", name: "薄荷健康",   url: "https://www.boohee.com",       desc: "饮食热量管理" },
+  { c: "life", name: "美柚",       url: "https://www.meiyou.com",       desc: "女性健康记录" },
+  { c: "life", name: "宝宝树",     url: "https://www.babytree.com",     desc: "育儿社区" },
+  { c: "life", name: "平安好医生", url: "https://www.pagd.net",         desc: "在线问诊" },
+  { c: "life", name: "微医",       url: "https://www.guahao.com",       desc: "挂号就医平台" },
+  { c: "life", name: "好大夫在线", url: "https://www.haodf.com",        desc: "找医生看病" },
+  { c: "life", name: "链家",       url: "https://www.lianjia.com",      desc: "二手房交易" },
+  { c: "ai", name: "Suno", url: "https://suno.com", desc: "AI 音乐创作" },
+  { c: "ai", name: "Runway", url: "https://runwayml.com", desc: "AI 视频生成" },
+  { c: "ai", name: "ElevenLabs", url: "https://elevenlabs.io", desc: "AI 配音朗读" },
+  { c: "ai", name: "NotebookLM", url: "https://notebooklm.google.com", desc: "谷歌 AI 笔记研究助手" },
+  { c: "ai", name: "Mistral", url: "https://mistral.ai", desc: "法国 AI 大模型" },
+  { c: "ai", name: "Character.AI", url: "https://character.ai", desc: "AI 角色聊天" },
+  { c: "treasure", name: "Speedtest", url: "https://www.speedtest.net", desc: "网速测试" },
+  { c: "treasure", name: "Wayback Machine", url: "https://web.archive.org", desc: "网页历史时光机" },
+  { c: "tools", name: "Loom", url: "https://www.loom.com", desc: "屏幕录像分享" },
+  { c: "tools", name: "Calendly", url: "https://calendly.com", desc: "预约排期工具" },
+  { c: "learn", name: "arXiv", url: "https://arxiv.org", desc: "最新论文预印本" },
+  { c: "learn", name: "MIT 公开课", url: "https://ocw.mit.edu", desc: "麻省理工免费课程" },
+  { c: "learn", name: "Udemy", url: "https://www.udemy.com", desc: "技能课程市场" },
+  { c: "news", name: "美联社", url: "https://apnews.com", desc: "国际权威通讯社" },
+  { c: "news", name: "TechCrunch", url: "https://techcrunch.com", desc: "科技创业新闻" },
+  { c: "news", name: "Hacker News", url: "https://news.ycombinator.com", desc: "程序员热议榜" },
+  { c: "news", name: "Axios", url: "https://www.axios.com", desc: "精炼新闻快报" },
+  { c: "music", name: "Bandcamp", url: "https://bandcamp.com", desc: "独立音乐商店" },
+  { c: "music", name: "Last.fm", url: "https://www.last.fm", desc: "音乐品味记录" },
+  { c: "shop", name: "iHerb", url: "https://www.iherb.com", desc: "海外保健品直邮" },
+  { c: "shop", name: "Mercari", url: "https://www.mercari.com", desc: "日本二手交易平台" },
+  { c: "travel", name: "Klook", url: "https://www.klook.com", desc: "景点门票玩乐预订" },
+  { c: "finance", name: "CoinMarketCap", url: "https://coinmarketcap.com", desc: "加密货币行情" },
+  { c: "game", name: "Metacritic", url: "https://www.metacritic.com", desc: "游戏评分汇总" },
+  { c: "life", name: "AccuWeather", url: "https://www.accuweather.com", desc: "全球天气预报" },
+  { c: "life", name: "TimeAndDate", url: "https://www.timeanddate.com", desc: "世界时钟日历" },
+  { c: "life", name: "Numbeo", url: "https://www.numbeo.com", desc: "全球生活成本对比" },
+  { c: "ai", name: "Gamma", url: "https://gamma.app", desc: "AI 一键做 PPT" },
+  { c: "ai", name: "Civitai", url: "https://civitai.com", desc: "AI 绘画模型社区" },
+  { c: "tools", name: "Miro", url: "https://miro.com", desc: "在线白板协作" },
+  { c: "tools", name: "Grammarly", url: "https://www.grammarly.com", desc: "英文写作校对" },
+  { c: "treasure", name: "Smallpdf", url: "https://smallpdf.com", desc: "PDF 在线处理" },
+  { c: "treasure", name: "Photopea", url: "https://www.photopea.com", desc: "网页版 Photoshop" },
+  { c: "treasure", name: "Excalidraw", url: "https://excalidraw.com", desc: "手绘风流程图" },
+  { c: "learn", name: "古登堡计划", url: "https://www.gutenberg.org", desc: "七万本免费公版书" },
+  { c: "learn", name: "W3Schools", url: "https://www.w3schools.com", desc: "编程入门教程" },
+  { c: "learn", name: "freeCodeCamp", url: "https://www.freecodecamp.org", desc: "免费学编程" },
+  { c: "learn", name: "菜鸟教程", url: "https://www.runoob.com", desc: "中文编程教程" },
+  { c: "news", name: "Solidot", url: "https://www.solidot.org", desc: "科技资讯翻译" },
+  { c: "video", name: "Crunchyroll", url: "https://www.crunchyroll.com", desc: "正版动漫平台" },
+  { c: "video", name: "AcFun", url: "https://www.acfun.cn", desc: "弹幕视频老牌" },
+  { c: "music", name: "汽水音乐", url: "https://music.douyin.com", desc: "抖音系音乐" },
+  { c: "social", name: "Telegram", url: "https://telegram.org", desc: "加密即时通讯" },
+  { c: "travel", name: "Google Flights", url: "https://flights.google.com", desc: "机票搜索比价" },
+  { c: "travel", name: "马蜂窝", url: "https://www.mafengwo.cn", desc: "旅游攻略社区" },
+  { c: "travel", name: "穷游网", url: "https://www.qyer.com", desc: "出境游攻略" },
+  { c: "finance", name: "金十数据", url: "https://www.jin10.com", desc: "财经快讯日历" },
+  { c: "finance", name: "Trading Economics", url: "https://tradingeconomics.com", desc: "全球经济数据" },
+  { c: "game", name: "NGA", url: "https://nga.178.com", desc: "魔兽起家游戏社区" },
+  { c: "game", name: "GameSpot", url: "https://www.gamespot.com", desc: "游戏评测媒体" },
+  { c: "game", name: "PlayStation", url: "https://www.playstation.com", desc: "索尼主机" },
+  { c: "game", name: "Xbox", url: "https://www.xbox.com", desc: "微软主机" },
+  { c: "life", name: "墨迹天气", url: "https://www.moji.com", desc: "天气生活指数" },
+  { c: "life", name: "快递100", url: "https://www.kuaidi100.com", desc: "快递查询" },
+  { c: "tools", name: "OpenAI", url: "https://openai.com", desc: "ChatGPT 官网" },
+  { c: "shop", name: "Nike", url: "https://www.nike.com", desc: "耐克官网" },
+  { c: "shop", name: "Adidas", url: "https://www.adidas.com", desc: "阿迪达斯官网" },
+  { c: "shop", name: "麦当劳", url: "https://www.mcdonalds.com", desc: "麦当劳官网" },
+  { c: "shop", name: "星巴克", url: "https://www.starbucks.com", desc: "星巴克官网" },
+  { c: "life", name: "可口可乐", url: "https://www.coca-cola.com", desc: "可口可乐官网" },
+
+  { c: "life", name: "温州台风网", url: "http://www.wztf121.com", desc: "台风路径实时发布（温州）" },
+  { c: "life", name: "中央气象台", url: "https://www.nmc.cn", desc: "天气预报预警权威发布" },
+  { c: "life", name: "菜鸟", url: "https://www.cainiao.com", desc: "快递查件裹裹" },
+  { c: "life", name: "浙江政务服务网", url: "https://www.zjzwfw.gov.cn", desc: "浙江一网通办" },
+  { c: "life", name: "12315 平台", url: "https://www.12315.cn", desc: "消费者投诉举报" },
+  { c: "life", name: "企业信用公示", url: "https://www.gsxt.gov.cn", desc: "国家企业信用信息查询" },
+  { c: "life", name: "征信中心", url: "https://ipcrs.pbccrc.org.cn", desc: "个人信用报告查询" },
+  { c: "news", name: "IT之家", url: "https://www.ithome.com", desc: "科技数码资讯" },
+  { c: "tools", name: "V2EX", url: "https://www.v2ex.com", desc: "创意工作者社区" },
+  { c: "treasure", name: "草料二维码", url: "https://cli.im", desc: "二维码生成与识别" },
+  { c: "learn", name: "古诗文网", url: "https://www.gushiwen.cn", desc: "诗词古文大全" },
+  { c: "learn", name: "中国知网", url: "https://www.cnki.net", desc: "学术论文文献" },
+  { c: "finance", name: "工商银行", url: "https://www.icbc.com.cn", desc: "ICBC 官网手机银行" },
+  { c: "finance", name: "建设银行", url: "https://www.ccb.com", desc: "CCB 官网手机银行" },
+  { c: "finance", name: "农业银行", url: "https://www.abchina.com", desc: "ABC 官网手机银行" },
+  { c: "finance", name: "中国银行", url: "https://www.boc.cn", desc: "BOC 官网手机银行" },
+  { c: "finance", name: "交通银行", url: "https://www.bankcomm.com", desc: "BOCOM 官网手机银行" },
+  { c: "finance", name: "招商银行", url: "https://www.cmbchina.com", desc: "CMB 官网手机银行" },
+  { c: "finance", name: "邮储银行", url: "https://www.psbc.com", desc: "PSBC 官网手机银行" },
+  { c: "finance", name: "中信银行", url: "https://www.citicbank.com", desc: "CITIC 官网手机银行" },
+  { c: "finance", name: "浦发银行", url: "https://www.spdb.com.cn", desc: "SPDB 官网手机银行" },
+  { c: "finance", name: "兴业银行", url: "https://www.cib.com.cn", desc: "CIB 官网手机银行" },
+  { c: "finance", name: "民生银行", url: "https://www.cmbc.com.cn", desc: "CMBC 官网手机银行" },
+  { c: "finance", name: "平安银行", url: "https://bank.pingan.com", desc: "平安银行官网" },
+  { c: "finance", name: "微众银行", url: "https://www.webank.com", desc: "腾讯系互联网银行" },
+  { c: "finance", name: "摩根大通", url: "https://www.jpmorganchase.com", desc: "美国最大银行" },
+  { c: "finance", name: "美国银行", url: "https://www.bankofamerica.com", desc: "Bank of America" },
+  { c: "finance", name: "高盛", url: "https://www.goldmansachs.com", desc: "Goldman Sachs 投行" },
+  { c: "finance", name: "摩根士丹利", url: "https://www.morganstanley.com", desc: "Morgan Stanley" },
+  { c: "finance", name: "花旗集团", url: "https://www.citigroup.com", desc: "Citigroup 花旗" },
+  { c: "finance", name: "富国银行", url: "https://www.wellsfargo.com", desc: "Wells Fargo" },
+  { c: "finance", name: "汇丰银行", url: "https://www.hsbc.com", desc: "HSBC 汇丰" },
+  { c: "finance", name: "瑞银 UBS", url: "https://www.ubs.com", desc: "瑞士银行集团" },
+  { c: "finance", name: "Visa", url: "https://www.visa.com", desc: "维萨卡组织" },
+  { c: "finance", name: "万事达卡", url: "https://www.mastercard.com", desc: "Mastercard 卡组织" },
+  { c: "finance", name: "上海期货交易所", url: "https://www.shfe.com.cn", desc: "上期所官网" },
+  { c: "finance", name: "大连商品交易所", url: "https://www.dce.com.cn", desc: "大商所官网" },
+  { c: "finance", name: "郑州商品交易所", url: "http://www.czce.com.cn", desc: "郑商所官网" },
+  { c: "finance", name: "中国金融期货交易所", url: "http://www.cffex.com.cn", desc: "中金所官网" },
+  { c: "finance", name: "广州期货交易所", url: "http://www.gfex.com.cn", desc: "广期所官网" },
+  { c: "finance", name: "生意社", url: "https://www.100ppi.com", desc: "大宗商品价格" },
+  { c: "finance", name: "集思录", url: "https://www.jisilu.cn", desc: "低风险投资社区" },
+  { c: "company", name: "英伟达", url: "https://www.nvidia.com", desc: "NVIDIA 芯片巨头" },
+  { c: "company", name: "AMD", url: "https://www.amd.com", desc: "超微半导体" },
+  { c: "company", name: "英特尔", url: "https://www.intel.com", desc: "Intel 芯片巨头" },
+  { c: "company", name: "高通", url: "https://www.qualcomm.com", desc: "Qualcomm 芯片" },
+  { c: "company", name: "台积电", url: "https://www.tsmc.com", desc: "TSMC 芯片代工之王" },
+  { c: "company", name: "ASML", url: "https://www.asml.com", desc: "荷兰光刻机巨头" },
+  { c: "company", name: "甲骨文", url: "https://www.oracle.com", desc: "Oracle 数据库巨头" },
+  { c: "company", name: "IBM", url: "https://www.ibm.com", desc: "百年科技公司" },
+  { c: "company", name: "思科", url: "https://www.cisco.com", desc: "Cisco 网络设备" },
+  { c: "company", name: "Salesforce", url: "https://www.salesforce.com", desc: "客户关系管理巨头" },
+  { c: "company", name: "Adobe", url: "https://www.adobe.com", desc: "创意软件巨头" },
+  { c: "life", name: "乐高", url: "https://www.lego.com", desc: "乐高积木官网" },
+];
+
+/* ==================== 按国家数据 ==================== */
+const COUNTRIES = [
+  { id: "cn", region: "亚洲", flag: "🇨🇳", name: "中国", sites: [
+    { name: "百度",      url: "https://www.baidu.com",      desc: "最大中文搜索引擎" },
+    { name: "微博",      url: "https://weibo.com",          desc: "热点社交平台" },
+    { name: "小红书",    url: "https://www.xiaohongshu.com", desc: "生活方式社区" },
+    { name: "知乎",      url: "https://www.zhihu.com",      desc: "中文问答社区" },
+    { name: "Bilibili", url: "https://www.bilibili.com",    desc: "弹幕视频网站" },
+    { name: "抖音",      url: "https://www.douyin.com",     desc: "短视频平台" },
+    { name: "淘宝",      url: "https://www.taobao.com",     desc: "综合电商平台" },
+    { name: "京东",      url: "https://www.jd.com",         desc: "自营电商平台" },
+    { name: "腾讯网",    url: "https://www.qq.com",         desc: "综合门户" },
+    { name: "12306",    url: "https://www.12306.cn",       desc: "铁路官方购票" },
+    { name: "微信",      url: "https://weixin.qq.com",      desc: "国民级社交应用" },
+    { name: "快手",      url: "https://www.kuaishou.com",   desc: "短视频直播" },
+    { name: "拼多多",    url: "https://www.pinduoduo.com",  desc: "团购电商" },
+    { name: "美团",      url: "https://www.meituan.com",    desc: "外卖团购生活" },
+    { name: "大众点评",  url: "https://www.dianping.com",   desc: "商户点评" },
+    { name: "饿了么",    url: "https://www.ele.me",         desc: "外卖订餐" },
+    { name: "网易云音乐", url: "https://music.163.com",     desc: "中文音乐社区" },
+    { name: "QQ 音乐",   url: "https://y.qq.com",           desc: "腾讯音乐" },
+    { name: "腾讯视频",  url: "https://v.qq.com",           desc: "影视综艺" },
+    { name: "爱奇艺",    url: "https://www.iqiyi.com",      desc: "影视综艺" },
+    { name: "优酷",      url: "https://youku.com",          desc: "影视综艺" },
+    { name: "芒果TV",   url: "https://www.mgtv.com",       desc: "湖南卫视平台" },
+    { name: "高德地图",  url: "https://www.amap.com",       desc: "地图导航" },
+    { name: "百度地图",  url: "https://map.baidu.com",      desc: "地图导航" },
+    { name: "携程",      url: "https://www.ctrip.com",      desc: "机票酒店旅游" },
+    { name: "飞猪",      url: "https://www.fliggy.com",     desc: "阿里旅行" },
+    { name: "滴滴出行",  url: "https://www.didiglobal.com", desc: "打车服务" },
+    { name: "顺丰速运",  url: "https://www.sf-express.com", desc: "快递服务" },
+    { name: "58同城",    url: "https://www.58.com",         desc: "分类信息" },
+    { name: "贝壳找房",  url: "https://www.ke.com",         desc: "房产交易" },
+    { name: "豆瓣",      url: "https://www.douban.com",     desc: "书影音社区" },
+    { name: "贴吧",      url: "https://tieba.baidu.com",    desc: "兴趣社区" },
+    { name: "今日头条",  url: "https://www.toutiao.com",    desc: "个性化资讯" },
+    { name: "澎湃新闻",  url: "https://www.thepaper.cn",    desc: "时政财经新闻" },
+    { name: "财新网",    url: "https://www.caixin.com",     desc: "财经新闻" },
+    { name: "东方财富",  url: "https://www.eastmoney.com",  desc: "股票基金行情" },
+    { name: "雪球",      url: "https://xueqiu.com",         desc: "投资者社区" },
+    { name: "下厨房",    url: "https://www.xiachufang.com", desc: "菜谱美食" },
+    { name: "中国大学MOOC", url: "https://www.icourse163.org", desc: "高校公开课" },
+    { name: "学习强国",  url: "https://www.xuexi.cn",       desc: "官方学习平台" },
+    { name: "中国政府网", url: "https://www.gov.cn",        desc: "政务服务门户" },
+    { name: "国家税务总局", url: "https://www.chinatax.gov.cn", desc: "个税办税服务" },
+    { name: "国家医保局", url: "https://www.nhsa.gov.cn",   desc: "医保政策服务" },
+      { name: "什么值得买", url: "https://www.smzdm.com", desc: "网购比价攻略" },
+    { name: "汽车之家", url: "https://www.autohome.com.cn", desc: "汽车资讯平台" },
+    { name: "酷安", url: "https://www.coolapk.com", desc: "安卓应用社区" },
+      { name: "网易", url: "https://www.163.com", desc: "老牌门户邮箱" },
+    { name: "界面新闻", url: "https://www.jiemian.com", desc: "商业财经新闻" },
+    { name: "简书", url: "https://www.jianshu.com", desc: "写作阅读社区" },
+    { name: "掘金", url: "https://juejin.cn", desc: "开发者技术社区" },
+    { name: "开源中国", url: "https://www.oschina.net", desc: "开源技术社区" },
+    { name: "豆瓣读书", url: "https://book.douban.com", desc: "书单评分" },
+      { name: "华为", url: "https://www.huawei.com", desc: "手机通信巨头" },
+    { name: "小米", url: "https://www.mi.com", desc: "手机智能家居" },
+    { name: "比亚迪", url: "https://www.byd.com", desc: "新能源车企" },
+    { name: "大疆", url: "https://www.dji.com", desc: "无人机之王" },
+    { name: "联想", url: "https://www.lenovo.com", desc: "电脑巨头" },
+    { name: "海尔", url: "https://www.haier.com", desc: "家电巨头" },
+    { name: "温州台风网", url: "http://www.wztf121.com", desc: "台风路径实时发布" },
+    { name: "中央气象台", url: "https://www.nmc.cn", desc: "天气预警权威发布" },
+    { name: "工商银行", url: "https://www.icbc.com.cn", desc: "最大商业银行" },
+    { name: "建设银行", url: "https://www.ccb.com", desc: "建设银行官网" },
+    { name: "农业银行", url: "https://www.abchina.com", desc: "农业银行官网" },
+    { name: "中国银行", url: "https://www.boc.cn", desc: "中国银行官网" },
+    { name: "交通银行", url: "https://www.bankcomm.com", desc: "交通银行官网" },
+    { name: "招商银行", url: "https://www.cmbchina.com", desc: "股份制银行标杆" },
+    { name: "邮储银行", url: "https://www.psbc.com", desc: "邮政储蓄银行" },
+    { name: "中信银行", url: "https://www.citicbank.com", desc: "中信集团银行" },
+    { name: "浦发银行", url: "https://www.spdb.com.cn", desc: "上海浦东发展银行" },
+    { name: "兴业银行", url: "https://www.cib.com.cn", desc: "福建兴业银行" },
+    { name: "民生银行", url: "https://www.cmbc.com.cn", desc: "民生银行官网" },
+    { name: "平安银行", url: "https://bank.pingan.com", desc: "平安集团银行" },
+    { name: "微众银行", url: "https://www.webank.com", desc: "腾讯互联网银行" },
+    { name: "上海期货交易所", url: "https://www.shfe.com.cn", desc: "上期所" },
+    { name: "大连商品交易所", url: "https://www.dce.com.cn", desc: "大商所" },
+    { name: "郑州商品交易所", url: "http://www.czce.com.cn", desc: "郑商所" },
+    { name: "中国金融期货交易所", url: "http://www.cffex.com.cn", desc: "中金所" },
+    { name: "广州期货交易所", url: "http://www.gfex.com.cn", desc: "广期所" },
+    { name: "生意社", url: "https://www.100ppi.com", desc: "大宗商品价格" },
+    { name: "集思录", url: "https://www.jisilu.cn", desc: "低风险投资社区" },
+    { name: "IT之家", url: "https://www.ithome.com", desc: "科技数码资讯" },
+    { name: "V2EX", url: "https://www.v2ex.com", desc: "创意工作者社区" },
+    { name: "草料二维码", url: "https://cli.im", desc: "二维码生成识别" },
+    { name: "菜鸟", url: "https://www.cainiao.com", desc: "快递查件" },
+    { name: "古诗文网", url: "https://www.gushiwen.cn", desc: "诗词古文大全" },
+    { name: "中国知网", url: "https://www.cnki.net", desc: "学术论文文献" },
+    { name: "浙江政务服务网", url: "https://www.zjzwfw.gov.cn", desc: "浙江一网通办" },
+    { name: "企业信用公示", url: "https://www.gsxt.gov.cn", desc: "企业信息查询" },
+    { name: "12315 平台", url: "https://www.12315.cn", desc: "消费投诉举报" },
+  ]},
+  { id: "tw", region: "亚洲", flag: "🇨🇳", name: "中国台湾", sites: [
+    { name: "台积电", url: "https://www.tsmc.com", desc: "芯片代工之王" },
+    { name: "联发科", url: "https://www.mediatek.com", desc: "手机芯片设计" },
+    { name: "鸿海精密", url: "https://www.honhai.com", desc: "富士康母公司" },
+    { name: "长荣航空", url: "https://www.evaair.com", desc: "台湾航空公司" },
+  ]},
+  { id: "jp", region: "亚洲", flag: "🇯🇵", name: "日本", sites: [
+    { name: "Yahoo! JAPAN", url: "https://www.yahoo.co.jp",   desc: "日本最大门户" },
+    { name: "乐天市场",      url: "https://www.rakuten.co.jp", desc: "综合电商平台" },
+    { name: "Amazon 日本",   url: "https://www.amazon.co.jp",  desc: "亚马逊日本站" },
+    { name: "niconico",     url: "https://www.nicovideo.jp",  desc: "弹幕视频鼻祖" },
+    { name: "LINE",         url: "https://line.me",           desc: "国民级聊天工具" },
+    { name: "Mercari",      url: "https://jp.mercari.com",    desc: "二手交易平台" },
+    { name: "NHK",          url: "https://www.nhk.or.jp",     desc: "日本放送协会" },
+    { name: "note",         url: "https://note.com",          desc: "内容创作平台" },
+    { name: "乐天旅游",      url: "https://travel.rakuten.co.jp", desc: "酒店旅行预订" },
+    { name: "Tabelog",      url: "https://tabelog.com",       desc: "最大美食点评" },
+    { name: "优衣库",       url: "https://www.uniqlo.com/jp/", desc: "服饰品牌官网" },
+    { name: "无印良品",     url: "https://www.muji.com/jp/",  desc: "生活杂货品牌" },
+    { name: "Sony",         url: "https://www.sony.jp",       desc: "索尼日本官网" },
+    { name: "任天堂",       url: "https://www.nintendo.co.jp", desc: "游戏公司官网" },
+    { name: "朝日新闻",     url: "https://www.asahi.com",     desc: "主流报纸" },
+    { name: "读卖新闻",     url: "https://www.yomiuri.co.jp", desc: "发行量最大报纸" },
+    { name: "Abema",        url: "https://abema.tv",          desc: "网络电视台" },
+    { name: "TVer",         url: "https://tver.jp",           desc: "民放节目免费看" },
+    { name: "SUUMO",        url: "https://suumo.jp",          desc: "最大房产网站" },
+    { name: "Hot Pepper",   url: "https://www.hotpepper.jp",  desc: "餐厅美容预订" },
+      { name: "pixiv", url: "https://www.pixiv.net", desc: "插画艺术社区" },
+      { name: "丰田", url: "https://www.toyota.com", desc: "全球最大车企" },
+    { name: "索尼", url: "https://www.sony.com", desc: "电子娱乐巨头" },
+    { name: "本田", url: "https://www.honda.com", desc: "汽车摩托巨头" },
+    { name: "优衣库", url: "https://www.uniqlo.com", desc: "国民服饰品牌" },
+    { name: "佳能", url: "https://www.canon.com", desc: "相机影像巨头" },
+  ]},
+  { id: "kr", region: "亚洲", flag: "🇰🇷", name: "韩国", sites: [
+    { name: "Naver",   url: "https://www.naver.com",       desc: "最大门户搜索" },
+    { name: "Kakao",   url: "https://www.kakaocorp.com",   desc: "KakaoTalk 母公司" },
+    { name: "Coupang", url: "https://www.coupang.com",     desc: "火箭配送电商" },
+    { name: "Daum",    url: "https://www.daum.net",        desc: "老牌门户网站" },
+    { name: "Melon",   url: "https://www.melon.com",       desc: "最大音乐平台" },
+    { name: "Gmarket", url: "https://www.gmarket.co.kr",   desc: "综合购物网站" },
+    { name: "Naver Map", url: "https://map.naver.com",     desc: "主流地图导航" },
+    { name: "KakaoTalk", url: "https://www.kakaotalk.com", desc: "国民聊天应用" },
+    { name: "KakaoPage", url: "https://page.kakao.com",    desc: "网漫小说平台" },
+    { name: "Naver Webtoon", url: "https://comic.naver.com", desc: "最大网漫平台" },
+    { name: "Tving",   url: "https://www.tving.com",       desc: "流媒体影视" },
+    { name: "Wavve",   url: "https://www.wavve.com",       desc: "流媒体平台" },
+    { name: "11街",    url: "https://www.11st.co.kr",      desc: "综合电商" },
+    { name: "SSG",     url: "https://www.ssg.com",         desc: "新世界电商" },
+    { name: "朝鲜日报", url: "https://www.chosun.com",     desc: "主流报纸" },
+    { name: "韩联社",  url: "https://www.yna.co.kr",       desc: "国家通讯社" },
+    { name: "Samsung", url: "https://www.samsung.com/sec/", desc: "三星官网" },
+      { name: "三星", url: "https://www.samsung.com", desc: "电子巨头手机家电" },
+    { name: "现代汽车", url: "https://www.hyundai.com", desc: "韩国最大车企" },
+    { name: "LG", url: "https://www.lg.com", desc: "电子家电巨头" },
+  ]},
+  { id: "in", region: "亚洲", flag: "🇮🇳", name: "印度", sites: [
+    { name: "Flipkart",       url: "https://www.flipkart.com",            desc: "本土最大电商" },
+    { name: "Times of India", url: "https://timesofindia.indiatimes.com", desc: "最大英文报纸" },
+    { name: "NDTV",           url: "https://www.ndtv.com",                desc: "新闻电视网" },
+    { name: "Hotstar",        url: "https://www.hotstar.com",             desc: "流媒体平台" },
+    { name: "IRCTC",          url: "https://www.irctc.co.in",             desc: "铁路官方购票" },
+    { name: "Paytm",          url: "https://paytm.com",                   desc: "移动支付平台" },
+    { name: "Amazon 印度",    url: "https://www.amazon.in",               desc: "亚马逊印度站" },
+    { name: "Swiggy",         url: "https://www.swiggy.com",              desc: "外卖订餐平台" },
+    { name: "Zomato",         url: "https://www.zomato.com",              desc: "美食点评外卖" },
+    { name: "MakeMyTrip",     url: "https://www.makemytrip.com",          desc: "机票酒店预订" },
+    { name: "PhonePe",        url: "https://www.phonepe.com",             desc: "移动支付" },
+    { name: "Myntra",         url: "https://www.myntra.com",              desc: "时尚电商" },
+    { name: "Zee5",           url: "https://www.zee5.com",                desc: "流媒体影视" },
+    { name: "Gaana",          url: "https://gaana.com",                   desc: "音乐流媒体" },
+    { name: "Hindustan Times", url: "https://www.hindustantimes.com",     desc: "主流英文报纸" },
+    { name: "The Hindu",      url: "https://www.thehindu.com",            desc: "权威英文报纸" },
+    { name: "BookMyShow",     url: "https://in.bookmyshow.com",           desc: "电影演出票务" }
+  ]},
+  { id: "sea", region: "亚洲", flag: "🌏", name: "东南亚", sites: [
+    { name: "Shopee",    url: "https://shopee.com",       desc: "最大电商平台" },
+    { name: "Lazada",    url: "https://www.lazada.com",   desc: "阿里旗下电商" },
+    { name: "Grab",      url: "https://www.grab.com",     desc: "打车外卖支付" },
+    { name: "Gojek",     url: "https://www.gojek.com",    desc: "印尼超级应用" },
+    { name: "Zalo",      url: "https://zalo.me",          desc: "越南国民社交" },
+    { name: "联合早报",   url: "https://www.zaobao.com",   desc: "新加坡华文报" },
+    { name: "Traveloka", url: "https://www.traveloka.com", desc: "印尼旅游预订" },
+    { name: "Tokopedia", url: "https://www.tokopedia.com", desc: "印尼最大电商" },
+    { name: "Bukalapak", url: "https://www.bukalapak.com", desc: "印尼电商" },
+    { name: "Carousell", url: "https://www.carousell.sg",  desc: "二手交易平台" },
+    { name: "Foodpanda", url: "https://www.foodpanda.sg",  desc: "外卖订餐" },
+    { name: "VnExpress", url: "https://vnexpress.net",     desc: "越南最大新闻网" },
+    { name: "Tuoi Tre",  url: "https://tuoitre.vn",        desc: "越南主流报纸" },
+    { name: "Thairath",  url: "https://www.thairath.co.th", desc: "泰国最大报纸" },
+    { name: "ABS-CBN",   url: "https://www.abs-cbn.com",   desc: "菲律宾最大媒体" },
+    { name: "CNA 亚洲新闻台", url: "https://www.channelnewsasia.com", desc: "新加坡国际新闻" },
+    { name: "Straits Times", url: "https://www.straitstimes.com", desc: "新加坡海峡时报" },
+      { name: "Carousell", url: "https://www.carousell.com", desc: "东南亚二手交易" },
+      { name: "Detik", url: "https://www.detik.com", desc: "印尼新闻门户" },
+  ]},
+  { id: "me", region: "亚洲", flag: "🌍", name: "中东", sites: [
+    { name: "Al Jazeera",    url: "https://www.aljazeera.com",    desc: "半岛电视台" },
+    { name: "Noon",          url: "https://www.noon.com",         desc: "中东电商平台" },
+    { name: "Khaleej Times", url: "https://www.khaleejtimes.com", desc: "阿联酋英文报" },
+    { name: "Gulf News",     url: "https://gulfnews.com",         desc: "海湾主流英文报" },
+    { name: "Arab News",     url: "https://www.arabnews.com",     desc: "沙特英文报纸" },
+    { name: "Amazon 中东",   url: "https://www.amazon.ae",        desc: "亚马逊阿联酋站" },
+    { name: "Talabat",       url: "https://www.talabat.com",      desc: "中东外卖平台" },
+    { name: "Careem",        url: "https://www.careem.com",       desc: "中东打车应用" },
+    { name: "Dubizzle",      url: "https://www.dubizzle.com",     desc: "阿联酋分类信息" },
+    { name: "Emirates 航空", url: "https://www.emirates.com",     desc: "阿联酋航空官网" },
+    { name: "Saudi Gazette", url: "https://saudigazette.com.sa",  desc: "沙特英文报纸" },
+    { name: "Times of Israel", url: "https://www.timesofisrael.com", desc: "以色列新闻" },
+    { name: "Hürriyet",      url: "https://www.hurriyet.com.tr",  desc: "土耳其大报" }
+  ]},
+  { id: "uk", region: "欧洲", flag: "🇬🇧", name: "英国", sites: [
+    { name: "BBC",          url: "https://www.bbc.com",          desc: "英国广播公司" },
+    { name: "The Guardian", url: "https://www.theguardian.com",  desc: "英国卫报" },
+    { name: "Amazon UK",    url: "https://www.amazon.co.uk",     desc: "亚马逊英国站" },
+    { name: "Sky",          url: "https://www.sky.com",          desc: "天空电视台" },
+    { name: "GOV.UK",       url: "https://www.gov.uk",           desc: "政府服务门户" },
+    { name: "Rightmove",    url: "https://www.rightmove.co.uk",  desc: "最大房产网站" },
+    { name: "ITV",          url: "https://www.itv.com",          desc: "商业电视台" },
+    { name: "Channel 4",    url: "https://www.channel4.com",     desc: "公共电视台" },
+    { name: "Daily Mail",   url: "https://www.dailymail.co.uk",  desc: "最大报纸网站" },
+    { name: "The Times",    url: "https://www.thetimes.co.uk",   desc: "泰晤士报" },
+    { name: "Telegraph",    url: "https://www.telegraph.co.uk",  desc: "每日电讯报" },
+    { name: "Tesco",        url: "https://www.tesco.com",        desc: "最大超市连锁" },
+    { name: "Argos",        url: "https://www.argos.co.uk",      desc: "综合零售商" },
+    { name: "John Lewis",   url: "https://www.johnlewis.com",    desc: "高端百货" },
+    { name: "Trainline",    url: "https://www.thetrainline.com", desc: "火车票务预订" },
+    { name: "Premier League", url: "https://www.premierleague.com", desc: "英超官网" },
+    { name: "NHS",          url: "https://www.nhs.uk",           desc: "国民医疗体系" },
+      { name: "经济学人", url: "https://www.economist.com", desc: "深度政经周刊" },
+    { name: "ASOS", url: "https://www.asos.com", desc: "英国时尚电商" },
+      { name: "劳斯莱斯", url: "https://www.rolls-royce.com", desc: "顶级豪车" },
+    { name: "联合利华", url: "https://www.unilever.com", desc: "日化巨头" },
+    { name: "汇丰银行", url: "https://www.hsbc.com", desc: "HSBC 金融集团" },
+    { name: "巴克莱银行", url: "https://www.barclays.co.uk", desc: "Barclays 银行" },
+  ]},
+  { id: "de", region: "欧洲", flag: "🇩🇪", name: "德国", sites: [
+    { name: "Amazon 德国",    url: "https://www.amazon.de",        desc: "亚马逊德国站" },
+    { name: "Spiegel",       url: "https://www.spiegel.de",       desc: "明镜周刊" },
+    { name: "Bild",          url: "https://www.bild.de",          desc: "最大报纸" },
+    { name: "ZDF",           url: "https://www.zdf.de",           desc: "公共电视台" },
+    { name: "Kleinanzeigen", url: "https://www.kleinanzeigen.de", desc: "分类信息网站" },
+    { name: "DW 德国之声",    url: "https://www.dw.com",           desc: "国际新闻媒体" },
+    { name: "ARD",           url: "https://www.ard.de",           desc: "公共电视联盟" },
+    { name: "FAZ",           url: "https://www.faz.net",          desc: "法兰克福汇报" },
+    { name: "Süddeutsche",   url: "https://www.sueddeutsche.de",  desc: "南德意志报" },
+    { name: "ZEIT",          url: "https://www.zeit.de",          desc: "时代周报" },
+    { name: "Zalando",       url: "https://www.zalando.de",       desc: "时尚电商" },
+    { name: "Otto",          url: "https://www.otto.de",          desc: "综合电商" },
+    { name: "MediaMarkt",    url: "https://www.mediamarkt.de",    desc: "电子产品零售" },
+    { name: "DB 德铁",       url: "https://www.bahn.de",          desc: "铁路官方购票" },
+    { name: "Lufthansa",     url: "https://www.lufthansa.com",    desc: "汉莎航空" },
+    { name: "ImmobilienScout24", url: "https://www.immobilienscout24.de", desc: "最大房产网站" },
+    { name: "Bundesliga",    url: "https://www.bundesliga.com",   desc: "德甲官网" },
+      { name: "德国之声", url: "https://www.dw.com/zh", desc: "德国国际媒体中文" },
+      { name: "idealo", url: "https://www.idealo.de", desc: "德国比价网" },
+      { name: "宝马", url: "https://www.bmw.com", desc: "BMW 汽车" },
+    { name: "奔驰", url: "https://www.mercedes-benz.com", desc: "梅赛德斯奔驰" },
+    { name: "保时捷", url: "https://www.porsche.com", desc: "跑车品牌" },
+    { name: "大众", url: "https://www.volkswagen.com", desc: "大众汽车" },
+    { name: "西门子", url: "https://www.siemens.com", desc: "工业巨头" },
+    { name: "SAP", url: "https://www.sap.com", desc: "企业管理软件" },
+    { name: "安联保险", url: "https://www.allianz.com", desc: "Allianz 保险巨头" },
+  ]},
+  { id: "fr", region: "欧洲", flag: "🇫🇷", name: "法国", sites: [
+    { name: "Le Monde",    url: "https://www.lemonde.fr",    desc: "世界报" },
+    { name: "Le Figaro",   url: "https://www.lefigaro.fr",   desc: "费加罗报" },
+    { name: "Amazon 法国",  url: "https://www.amazon.fr",     desc: "亚马逊法国站" },
+    { name: "Leboncoin",   url: "https://www.leboncoin.fr",  desc: "分类信息网站" },
+    { name: "Cdiscount",   url: "https://www.cdiscount.com", desc: "本土电商平台" },
+    { name: "France TV",   url: "https://www.france.tv",     desc: "公共电视台" },
+    { name: "TF1",         url: "https://www.tf1.fr",        desc: "最大商业电视台" },
+    { name: "Libération",  url: "https://www.liberation.fr", desc: "解放报" },
+    { name: "L'Équipe",    url: "https://www.lequipe.fr",    desc: "体育媒体" },
+    { name: "SNCF 法铁",   url: "https://www.sncf-connect.com", desc: "铁路官方购票" },
+    { name: "Air France",  url: "https://www.airfrance.com", desc: "法航官网" },
+    { name: "Fnac",        url: "https://www.fnac.com",      desc: "文化电子产品零售" },
+    { name: "Darty",       url: "https://www.darty.com",     desc: "家电零售" },
+    { name: "Vinted",      url: "https://www.vinted.fr",     desc: "二手服饰平台" },
+    { name: "Doctolib",    url: "https://www.doctolib.fr",   desc: "医疗预约平台" },
+    { name: "SeLoger",     url: "https://www.seloger.com",   desc: "房产网站" },
+    { name: "Louvre 卢浮宫", url: "https://www.louvre.fr",   desc: "博物馆官网" },
+      { name: "Deezer", url: "https://www.deezer.com", desc: "法国音乐平台" },
+      { name: "France24", url: "https://www.france24.com", desc: "法国国际新闻" },
+      { name: "路易威登", url: "https://www.louisvuitton.com", desc: "LV 奢侈品牌" },
+    { name: "香奈儿", url: "https://www.chanel.com", desc: "奢侈品牌" },
+    { name: "空客", url: "https://www.airbus.com", desc: "飞机制造商" },
+    { name: "米其林", url: "https://www.michelin.com", desc: "轮胎与美食指南" },
+  ]},
+  { id: "ru", region: "欧洲", flag: "🇷🇺", name: "俄罗斯", sites: [
+    { name: "Yandex",      url: "https://yandex.ru",          desc: "搜索与超级应用" },
+    { name: "VK",          url: "https://vk.com",             desc: "最大社交网络" },
+    { name: "Avito",       url: "https://www.avito.ru",       desc: "分类信息网站" },
+    { name: "Wildberries", url: "https://www.wildberries.ru", desc: "最大电商平台" },
+    { name: "Ozon",        url: "https://www.ozon.ru",        desc: "综合电商平台" },
+    { name: "OK.ru",       url: "https://ok.ru",              desc: "同学社交网络" },
+    { name: "Rambler",     url: "https://www.rambler.ru",     desc: "老牌门户网站" },
+    { name: "Mail.ru",     url: "https://mail.ru",            desc: "邮箱与门户" },
+    { name: "Kinopoisk",   url: "https://www.kinopoisk.ru",   desc: "电影资料评分" },
+    { name: "RIA 俄新社",  url: "https://ria.ru",             desc: "国家通讯社" },
+    { name: "TASS 塔斯社", url: "https://tass.ru",            desc: "国家通讯社" },
+    { name: "Lenta.ru",    url: "https://lenta.ru",           desc: "主流新闻网" },
+    { name: "Sberbank",    url: "https://www.sberbank.ru",    desc: "最大银行" },
+    { name: "Russian Railways", url: "https://eng.rzd.ru",    desc: "铁路官方购票" },
+    { name: "Aeroflot",    url: "https://www.aeroflot.ru",    desc: "俄航官网" },
+    { name: "Dzen",        url: "https://dzen.ru",            desc: "内容聚合平台" },
+    { name: "hh.ru",       url: "https://hh.ru",              desc: "最大求职网站" },
+      { name: "塔斯社", url: "https://tass.com", desc: "俄罗斯国家通讯社" },
+  ]},
+  { id: "us", region: "美洲", flag: "🇺🇸", name: "美国", sites: [
+    { name: "Google",      url: "https://www.google.com",    desc: "全球最大搜索" },
+    { name: "YouTube",     url: "https://www.youtube.com",   desc: "最大视频平台" },
+    { name: "Amazon",      url: "https://www.amazon.com",    desc: "最大电商平台" },
+    { name: "Facebook",    url: "https://www.facebook.com",  desc: "最大社交网络" },
+    { name: "X (Twitter)", url: "https://x.com",             desc: "实时社交平台" },
+    { name: "Reddit",      url: "https://www.reddit.com",    desc: "兴趣社区" },
+    { name: "Netflix",     url: "https://www.netflix.com",   desc: "流媒体影视" },
+    { name: "Wikipedia",   url: "https://www.wikipedia.org", desc: "自由百科" },
+    { name: "Yelp",        url: "https://www.yelp.com",      desc: "本地商户点评" },
+    { name: "CNN",         url: "https://www.cnn.com",       desc: "有线电视新闻" },
+    { name: "Instagram",   url: "https://www.instagram.com", desc: "图片社交" },
+    { name: "TikTok",      url: "https://www.tiktok.com",    desc: "短视频平台" },
+    { name: "LinkedIn",    url: "https://www.linkedin.com",  desc: "职场社交" },
+    { name: "WhatsApp",    url: "https://web.whatsapp.com",  desc: "主流聊天工具" },
+    { name: "Apple",       url: "https://www.apple.com",     desc: "苹果官网" },
+    { name: "Microsoft",   url: "https://www.microsoft.com", desc: "微软官网" },
+    { name: "GitHub",      url: "https://github.com",        desc: "代码托管平台" },
+    { name: "NYTimes",     url: "https://www.nytimes.com",   desc: "纽约时报" },
+    { name: "WSJ 华尔街日报", url: "https://www.wsj.com",     desc: "财经新闻" },
+    { name: "Bloomberg",   url: "https://www.bloomberg.com", desc: "彭博财经" },
+    { name: "ESPN",        url: "https://www.espn.com",      desc: "体育赛事媒体" },
+    { name: "IMDb",        url: "https://www.imdb.com",      desc: "电影资料库" },
+    { name: "Twitch",      url: "https://www.twitch.tv",     desc: "游戏直播" },
+    { name: "Hulu",        url: "https://www.hulu.com",      desc: "流媒体影视" },
+    { name: "Walmart",     url: "https://www.walmart.com",   desc: "沃尔玛商城" },
+    { name: "Target",      url: "https://www.target.com",    desc: "塔吉特百货" },
+    { name: "Costco",      url: "https://www.costco.com",    desc: "会员仓储超市" },
+    { name: "eBay",        url: "https://www.ebay.com",      desc: "拍卖购物" },
+    { name: "Etsy",        url: "https://www.etsy.com",      desc: "手工艺市场" },
+    { name: "Zillow",      url: "https://www.zillow.com",    desc: "房产交易" },
+    { name: "Craigslist",  url: "https://www.craigslist.org", desc: "分类信息" },
+    { name: "Indeed",      url: "https://www.indeed.com",    desc: "求职招聘" },
+    { name: "PayPal",      url: "https://www.paypal.com",    desc: "在线支付" },
+    { name: "Weather",     url: "https://weather.com",       desc: "天气预报" },
+    { name: "USA.gov",     url: "https://www.usa.gov",       desc: "政府服务门户" },
+      { name: "DoorDash", url: "https://www.doordash.com", desc: "美国外卖平台" },
+      { name: "烂番茄", url: "https://www.rottentomatoes.com", desc: "影评评分" },
+      { name: "Tesla", url: "https://www.tesla.com", desc: "特斯拉电动车" },
+    { name: "SpaceX", url: "https://www.spacex.com", desc: "马斯克太空公司" },
+    { name: "波音", url: "https://www.boeing.com", desc: "飞机制造商" },
+    { name: "福特", url: "https://www.ford.com", desc: "百年汽车品牌" },
+    { name: "迪士尼", url: "https://www.disney.com", desc: "迪士尼官网" },
+    { name: "NVIDIA", url: "https://www.nvidia.com", desc: "英伟达芯片巨头" },
+    { name: "AMD", url: "https://www.amd.com", desc: "超微半导体" },
+    { name: "Intel", url: "https://www.intel.com", desc: "英特尔芯片" },
+    { name: "Qualcomm", url: "https://www.qualcomm.com", desc: "高通芯片" },
+    { name: "Oracle", url: "https://www.oracle.com", desc: "甲骨文数据库" },
+    { name: "IBM", url: "https://www.ibm.com", desc: "百年科技公司" },
+    { name: "Cisco", url: "https://www.cisco.com", desc: "思科网络设备" },
+    { name: "Salesforce", url: "https://www.salesforce.com", desc: "CRM 软件巨头" },
+    { name: "Adobe", url: "https://www.adobe.com", desc: "创意软件巨头" },
+    { name: "Visa", url: "https://www.visa.com", desc: "维萨卡组织" },
+    { name: "Mastercard", url: "https://www.mastercard.com", desc: "万事达卡组织" },
+    { name: "摩根大通", url: "https://www.jpmorganchase.com", desc: "最大银行" },
+    { name: "美国银行", url: "https://www.bankofamerica.com", desc: "第二大商业银行" },
+    { name: "高盛", url: "https://www.goldmansachs.com", desc: "顶级投行" },
+    { name: "摩根士丹利", url: "https://www.morganstanley.com", desc: "金融服务集团" },
+    { name: "花旗集团", url: "https://www.citigroup.com", desc: "全球银行" },
+    { name: "富国银行", url: "https://www.wellsfargo.com", desc: "大型商业银行" },
+  ]},
+  { id: "ca", region: "美洲", flag: "🇨🇦", name: "加拿大", sites: [
+    { name: "CBC",          url: "https://www.cbc.ca",      desc: "加拿大广播公司" },
+    { name: "Amazon 加拿大", url: "https://www.amazon.ca",   desc: "亚马逊加拿大站" },
+    { name: "Kijiji",       url: "https://www.kijiji.ca",   desc: "分类信息网站" },
+    { name: "CTV News",     url: "https://www.ctvnews.ca",  desc: "CTV 新闻网" },
+    { name: "Global News",  url: "https://globalnews.ca",   desc: "环球新闻" },
+    { name: "Toronto Star", url: "https://www.thestar.com", desc: "最大发行量报纸" },
+    { name: "Canada Post",  url: "https://www.canadapost.ca", desc: "邮政服务" },
+    { name: "Canada.ca",    url: "https://www.canada.ca",   desc: "政府服务门户" },
+    { name: "Air Canada",   url: "https://www.aircanada.com", desc: "加航官网" },
+    { name: "VIA Rail",     url: "https://www.viarail.ca",  desc: "铁路购票" },
+    { name: "Tim Hortons",  url: "https://www.timhortons.ca", desc: "国民咖啡连锁" },
+    { name: "Canadian Tire", url: "https://www.canadiantire.ca", desc: "综合零售" },
+    { name: "RBC 皇家银行", url: "https://www.rbc.com",     desc: "最大银行" },
+    { name: "Weather Network", url: "https://www.theweathernetwork.com", desc: "天气服务" },
+    { name: "Realtor.ca",   url: "https://www.realtor.ca",  desc: "房产交易" },
+      { name: "Shopify", url: "https://www.shopify.com", desc: "加拿大电商建站" },
+      { name: "环球邮报", url: "https://www.theglobeandmail.com", desc: "加拿大报纸" },
+  ]},
+  { id: "latam", region: "美洲", flag: "🌎", name: "拉丁美洲", sites: [
+    { name: "Mercado Libre", url: "https://www.mercadolibre.com", desc: "最大电商平台" },
+    { name: "Globo",         url: "https://www.globo.com",        desc: "巴西最大门户" },
+    { name: "UOL",           url: "https://www.uol.com.br",       desc: "巴西门户网站" },
+    { name: "Clarín",        url: "https://www.clarin.com",       desc: "阿根廷大报" },
+    { name: "El Universal",  url: "https://www.eluniversal.com.mx", desc: "墨西哥大报" },
+    { name: "Milenio",       url: "https://www.milenio.com",      desc: "墨西哥新闻媒体" },
+    { name: "Amazon 墨西哥", url: "https://www.amazon.com.mx",    desc: "亚马逊墨西哥站" },
+    { name: "Amazon 巴西",   url: "https://www.amazon.com.br",    desc: "亚马逊巴西站" },
+    { name: "Magazine Luiza", url: "https://www.magazineluiza.com.br", desc: "巴西零售电商" },
+    { name: "Folha de S.Paulo", url: "https://www.folha.uol.com.br", desc: "巴西主流报纸" },
+    { name: "Infobae",       url: "https://www.infobae.com",      desc: "阿根廷新闻网" },
+    { name: "La Nación",     url: "https://www.lanacion.com.ar",  desc: "阿根廷大报" },
+    { name: "Banco do Brasil", url: "https://www.bb.com.br",      desc: "巴西银行" },
+    { name: "LATAM 航空",    url: "https://www.latamairlines.com", desc: "拉美最大航空" },
+    { name: "Rappi",         url: "https://www.rappi.com",        desc: "拉美外卖配送" }
+  ]},
+  { id: "af", region: "非洲", flag: "🌍", name: "非洲", sites: [
+    { name: "Jumia",         url: "https://www.jumia.com",  desc: "非洲最大电商" },
+    { name: "News24",        url: "https://www.news24.com", desc: "南非新闻网" },
+    { name: "Nation Africa", url: "https://nation.africa",  desc: "东非新闻媒体" },
+    { name: "BBC Africa",    url: "https://www.bbc.com/news/world/africa", desc: "BBC 非洲频道" },
+    { name: "Al Jazeera Africa", url: "https://www.aljazeera.com/africa/", desc: "半岛台非洲频道" },
+    { name: "Takealot",      url: "https://www.takealot.com", desc: "南非最大电商" },
+    { name: "Konga",         url: "https://www.konga.com",  desc: "尼日利亚电商" },
+    { name: "Punch",         url: "https://punchng.com",    desc: "尼日利亚大报" },
+    { name: "Daily Nation",  url: "https://nation.africa/kenya", desc: "肯尼亚大报" },
+    { name: "Egypt Today",   url: "https://www.egypttoday.com", desc: "埃及英文新闻网" },
+    { name: "Ahram Online",  url: "https://english.ahram.org.eg", desc: "埃及金字塔报" },
+    { name: "M-Pesa Safaricom", url: "https://www.safaricom.co.ke", desc: "肯尼亚移动支付" },
+    { name: "DStv",          url: "https://www.dstv.com",   desc: "非洲卫星电视" },
+    { name: "SuperSport",    url: "https://supersport.com", desc: "非洲体育媒体" },
+      { name: "Nairaland", url: "https://www.nairaland.com", desc: "尼日利亚论坛" },
+    { name: "SuperSport", url: "https://supersport.com", desc: "非洲体育媒体" },
+    { name: "News24", url: "https://www.news24.com", desc: "南非新闻媒体" },
+  ]},
+  { id: "au", region: "大洋洲", flag: "🇦🇺", name: "澳大利亚", sites: [
+    { name: "ABC",            url: "https://www.abc.net.au",        desc: "澳大利亚广播公司" },
+    { name: "news.com.au",    url: "https://www.news.com.au",       desc: "最大新闻网站" },
+    { name: "realestate.com", url: "https://www.realestate.com.au", desc: "最大房产网站" },
+    { name: "Amazon 澳洲",     url: "https://www.amazon.com.au",     desc: "亚马逊澳洲站" },
+    { name: "SMH 悉尼晨锋报", url: "https://www.smh.com.au",        desc: "主流报纸" },
+    { name: "The Age",        url: "https://www.theage.com.au",     desc: "墨尔本报纸" },
+    { name: "9News",          url: "https://www.9news.com.au",      desc: "九号台新闻" },
+    { name: "Domain",         url: "https://www.domain.com.au",     desc: "房产网站" },
+    { name: "Carsales",       url: "https://www.carsales.com.au",   desc: "最大汽车交易" },
+    { name: "Woolworths",     url: "https://www.woolworths.com.au", desc: "最大超市" },
+    { name: "Coles",          url: "https://www.coles.com.au",      desc: "连锁超市" },
+    { name: "Qantas",         url: "https://www.qantas.com",        desc: "澳航官网" },
+    { name: "Seek",           url: "https://www.seek.com.au",       desc: "最大求职网站" },
+    { name: "Stan",           url: "https://www.stan.com.au",       desc: "流媒体影视" },
+    { name: "Australia.gov.au", url: "https://www.australia.gov.au", desc: "政府服务门户" }
+  ]},
+  { id: "intl", region: "其他", flag: "🌐", name: "国际组织", sites: [
+    { name: "联合国",   url: "https://www.un.org",        desc: "United Nations" },
+    { name: "世卫组织", url: "https://www.who.int",       desc: "世界卫生组织" },
+    { name: "世界银行", url: "https://www.worldbank.org", desc: "World Bank" },
+    { name: "IMF",     url: "https://www.imf.org",       desc: "国际货币基金组织" },
+    { name: "联合国教科文组织", url: "https://www.unesco.org", desc: "UNESCO" },
+    { name: "世贸组织", url: "https://www.wto.org",       desc: "WTO" },
+    { name: "国际奥委会", url: "https://olympics.com",    desc: "Olympics" },
+    { name: "FIFA",    url: "https://www.fifa.com",       desc: "国际足联" },
+    { name: "红十字会", url: "https://www.icrc.org",      desc: "Red Cross" },
+    { name: "欧盟",    url: "https://europa.eu",          desc: "European Union" },
+    { name: "北约",    url: "https://www.nato.int",       desc: "NATO" },
+    { name: "国际刑警", url: "https://www.interpol.int",  desc: "Interpol" },
+      { name: "国际奥委会", url: "https://www.olympics.com", desc: "奥林匹克官网" },
+      { name: "雀巢", url: "https://www.nestle.com", desc: "瑞士食品巨头" },
+    { name: "劳力士", url: "https://www.rolex.com", desc: "瑞士名表" },
+    { name: "法拉利", url: "https://www.ferrari.com", desc: "意大利超跑" },
+  ]}
+];
+
+/* ==================== 渲染逻辑 ==================== */
+const main = document.getElementById("main");
+const chipsEl = document.getElementById("chips");
+const emptyEl = document.getElementById("empty");
+
+let currentView = "category";
+
+function faviconHtml(site) {
+  const letter = site.name.charAt(0).toUpperCase();
+  if (site.icon) {
+    return '<div class="favicon"><span>' + letter + '</span>' +
+           '<img src="' + site.icon + '" alt="" style="width:100%;height:100%" ' +
+           'onload="this.previousElementSibling.style.display=\'none\'"></div>';
+  }
+  const domain = new URL(site.url).hostname;
+  const srcs = [
+    "https://favicon.im/" + domain + "?larger=true",
+    "https://icons.duckduckgo.com/ip3/" + domain + ".ico",
+    "https://www.google.com/s2/favicons?domain=" + domain + "&sz=64"
+  ];
+  return '<div class="favicon"><span>' + letter + '</span>' +
+         '<img src="' + srcs[0] + '" alt="" loading="lazy" ' +
+         'data-fb="1" data-srcs=\'' + JSON.stringify(srcs) + '\' ' +
+         'onload="this.previousElementSibling.style.display=\'none\'" ' +
+         'onerror="faviconFallback(this)"></div>';
+}
+
+function faviconFallback(img) {
+  const srcs = JSON.parse(img.dataset.srcs);
+  const next = parseInt(img.dataset.fb, 10);
+  if (next < srcs.length) {
+    img.dataset.fb = next + 1;
+    img.src = srcs[next];
+  } else {
+    img.remove();
+  }
+}
+
+function cardHtml(site) {
+  return '<a class="card" href="' + site.url + '" target="_blank" rel="noopener">' +
+    faviconHtml(site) +
+    '<div class="info"><div class="name">' + site.name + '</div>' +
+    '<div class="desc">' + site.desc + '</div></div></a>';
+}
+
+function hostOf(u) {
+  try { return new URL(u).hostname.replace(/^www\./, "").toLowerCase(); }
+  catch (e) { return (u || "").toLowerCase(); }
+}
+function match(site, q) {
+  if (!q) return true;
+  const t = (site.name + " " + site.desc + " " + hostOf(site.url)).toLowerCase();
+  return q.split(/\s+/).filter(Boolean).every(w => t.includes(w));
+}
+
+function renderCategory(q) {
+  let html = "", shown = 0;
+  CATEGORIES.forEach(cat => {
+    const list = SITES.filter(s => s.c === cat.id && match(s, q));
+    if (!list.length) return;
+    shown += list.length;
+    html += '<section class="section" id="sec-' + cat.id + '">' +
+      '<div class="section-head"><span class="dot" style="background:' + cat.color + '"></span>' +
+      '<h2>' + cat.name + '</h2><span class="count">' + list.length + '</span></div>' +
+      '<div class="grid">' + list.map(cardHtml).join("") + '</div></section>';
+  });
+  return { html, shown };
+}
+
+function renderCountry(q) {
+  let html = "", shown = 0, lastRegion = null;
+  COUNTRIES.forEach(cty => {
+    const list = cty.sites.filter(s => match(s, q));
+    if (!list.length) return;
+    if (cty.region !== lastRegion) {
+      html += '<div class="region-title">' + cty.region + '</div>';
+      lastRegion = cty.region;
+    }
+    shown += list.length;
+    html += '<section class="section" id="sec-' + cty.id + '">' +
+      '<div class="section-head"><span class="flag">' + cty.flag + '</span>' +
+      '<h2>' + cty.name + '</h2><span class="count">' + list.length + '</span></div>' +
+      '<div class="grid">' + list.map(cardHtml).join("") + '</div></section>';
+  });
+  return { html, shown };
+}
+
+let query = "";
+function render() {
+  document.querySelector(".topbar").classList.toggle("searching", !!query);
+  if (query) {
+    const seen = new Set();
+    const hits = [];
+    const push = s => {
+      const h = hostOf(s.url);
+      if (!seen.has(h)) { seen.add(h); hits.push(s); }
+    };
+    SITES.forEach(s => { if (match(s, query)) push(s); });
+    COUNTRIES.forEach(cty => cty.sites.forEach(s => { if (match(s, query)) push(s); }));
+    chipsEl.style.display = "none";
+    main.innerHTML = hits.length
+      ? '<section class="section"><div class="section-head"><span class="dot" style="background:#0f8a6d"></span>' +
+        '<h2>搜索结果</h2><span class="count">' + hits.length + '</span></div>' +
+        '<div class="grid">' + hits.map(cardHtml).join("") + "</div></section>"
+      : "";
+    emptyEl.style.display = hits.length ? "none" : "block";
+    return;
+  }
+  chipsEl.style.display = "";
+  const r = currentView === "category" ? renderCategory(query) : renderCountry(query);
+  main.innerHTML = r.html;
+  emptyEl.style.display = r.shown ? "none" : "block";
+}
+const searchInput = document.getElementById("searchInput");
+searchInput.addEventListener("input", () => {
+  query = searchInput.value.trim().toLowerCase();
+  render();
+});
+
+/* ==================== 分组标签 ==================== */
+function buildChips() {
+  chipsEl.innerHTML = "";
+  const items = currentView === "category"
+    ? CATEGORIES.map(c => ({ id: c.id, label: c.name, dot: c.color }))
+    : COUNTRIES.map(c => ({ id: c.id, label: c.flag + " " + c.name }));
+
+  const allChip = document.createElement("button");
+  allChip.className = "chip active";
+  allChip.textContent = "全部";
+  allChip.onclick = () => { setActive(allChip); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  chipsEl.appendChild(allChip);
+
+  items.forEach(it => {
+    const chip = document.createElement("button");
+    chip.className = "chip";
+    chip.innerHTML = (it.dot ? '<span class="dot" style="background:' + it.dot + '"></span>' : "") + it.label;
+    chip.onclick = () => {
+      setActive(chip);
+      const el = document.getElementById("sec-" + it.id);
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+    };
+    chipsEl.appendChild(chip);
+  });
+}
+
+function setActive(chip) {
+  chipsEl.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+  chip.classList.add("active");
+}
+
+/* ==================== 视图切换 ==================== */
+document.getElementById("viewTabs").addEventListener("click", e => {
+  const tab = e.target.closest(".view-tab");
+  if (!tab) return;
+  document.querySelectorAll(".view-tab").forEach(t => t.classList.remove("active"));
+  tab.classList.add("active");
+  currentView = tab.dataset.view;
+  buildChips();
+  render();
+});
+
+/* ==================== 统计 ==================== */
+const catCount = SITES.length;
+const countryCount = COUNTRIES.reduce((n, c) => n + c.sites.length, 0);
+document.getElementById("total").textContent =
+  "共 " + (catCount + countryCount) + " 个网站 · " + CATEGORIES.length + " 大分类 · " + COUNTRIES.length + " 个国家/地区";
+
+/* ==================== 深色模式 ==================== */
+const themeBtn = document.getElementById("themeBtn");
+function applyTheme(t) {
+  document.documentElement.setAttribute("data-theme", t);
+  themeBtn.innerHTML = t === "dark" ? "&#9788;" : "&#9790;";
+  localStorage.setItem("wn-theme", t);
+}
+themeBtn.onclick = () => {
+  const cur = document.documentElement.getAttribute("data-theme");
+  applyTheme(cur === "dark" ? "light" : "dark");
+};
+const saved = localStorage.getItem("wn-theme");
+const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+applyTheme(saved || (prefersDark ? "dark" : "light"));
+
+buildChips();
+render();
+
+/* ==================== 手机端滚动时头部收缩 ==================== */
+const topbarEl = document.querySelector(".topbar");
+chipsEl.addEventListener("scroll", () => {
+  const end = chipsEl.scrollLeft + chipsEl.clientWidth >= chipsEl.scrollWidth - 6;
+  chipsEl.classList.toggle("at-end", end);
+}, { passive: true });
+let lastY = 0, ticking = false;
+function onScroll() {
+  const y = window.scrollY;
+  if (y > 120) topbarEl.classList.add("scrolled");
+  if (y < 60) topbarEl.classList.remove("scrolled");
+  lastY = y;
+  ticking = false;
+}
+window.addEventListener("scroll", () => {
+  if (!ticking) { requestAnimationFrame(onScroll); ticking = true; }
+}, { passive: true });
+</script>
+</body>
+</html>
