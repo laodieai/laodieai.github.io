@@ -41,6 +41,19 @@
   }
   .chip { white-space: nowrap; }
   .chip.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .album { display: block; margin: 12px 0 0; }
+  .album span { display: block; color: var(--muted); font-size: 13px; margin-bottom: 6px; }
+  #album {
+    width: 100%;
+    font: inherit;
+    font-size: 16px;
+    color: var(--ink);
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    min-height: 44px;
+    padding: 8px 12px;
+  }
   .tools { display: flex; gap: 8px; padding: 12px 0 8px; }
   #q {
     flex: 1;
@@ -115,6 +128,10 @@
   <h1>香港四大天王</h1>
   <p class="sub">张学友、刘德华、郭富城、黎明，加上张国荣、谭咏麟。可以按出道顺序播，也可以从现在倒回过去。点一首，就按当前顺序往下播。页内是试听，全曲打开 Apple Music。</p>
   <div class="chips" id="chips"></div>
+  <label class="album">
+    <span>专辑</span>
+    <select id="album"></select>
+  </label>
   <div class="tools">
     <input id="q" type="search" placeholder="搜歌名或专辑" enterkeyhint="search">
   </div>
@@ -144,6 +161,8 @@ const ARTISTS = ["张学友", "刘德华", "郭富城", "黎明", "张国荣", "
 let songs = [];
 let view = [];
 let artist = "张学友";
+let albumIndex = "";
+let albumList = [];
 let order = "old";
 let cursor = -1;
 let seeking = false;
@@ -169,6 +188,39 @@ function renderChips() {
   }).join("");
 }
 
+function renderAlbums() {
+  const sel = document.getElementById("album");
+  albumIndex = "";
+  albumList = [];
+  sel.replaceChildren();
+  const all = document.createElement("option");
+  all.value = "";
+  all.textContent = "全部专辑";
+  sel.appendChild(all);
+  const names = artist === "全部" ? ARTISTS : [artist];
+  names.forEach(name => {
+    const seen = new Map();
+    songs.forEach(s => {
+      if (s.artist !== name) return;
+      if (!seen.has(s.album)) seen.set(s.album, { year: s.year, count: 0 });
+      seen.get(s.album).count += 1;
+    });
+    const parent = artist === "全部" ? document.createElement("optgroup") : sel;
+    if (artist === "全部") {
+      parent.label = name;
+      sel.appendChild(parent);
+    }
+    seen.forEach((info, title) => {
+      const opt = document.createElement("option");
+      opt.value = String(albumList.length);
+      opt.textContent = `${info.year} ${title}（${info.count}首）`;
+      albumList.push({ artist: name, album: title });
+      parent.appendChild(opt);
+    });
+  });
+  sel.value = "";
+}
+
 function markOrder() {
   document.getElementById("playold").classList.toggle("on", order === "old");
   document.getElementById("playnew").classList.toggle("on", order === "new");
@@ -176,13 +228,15 @@ function markOrder() {
 
 function apply() {
   const q = qEl.value.trim().toLowerCase();
+  const picked = albumIndex === "" ? null : albumList[Number(albumIndex)];
   const chrono = songs.filter(s => {
     if (artist !== "全部" && s.artist !== artist) return false;
+    if (picked && (s.artist !== picked.artist || s.album !== picked.album)) return false;
     if (!q) return true;
     return (s.title + s.album + s.artist).toLowerCase().includes(q);
   });
   view = order === "new" ? chrono.slice().reverse() : chrono;
-  const label = artist === "全部" ? "全部" : artist;
+  const label = picked ? picked.album : (artist === "全部" ? "全部" : artist);
   const years = chrono.length ? `${chrono[0].year}–${chrono[chrono.length - 1].year}` : "";
   document.getElementById("count").textContent = view.length ? `${label} ${view.length} 首 · ${years}` : "没有匹配的歌";
   const parts = [];
@@ -235,6 +289,12 @@ document.getElementById("chips").addEventListener("click", e => {
   artist = btn.dataset.artist;
   cursor = -1;
   renderChips();
+  renderAlbums();
+  apply();
+});
+document.getElementById("album").addEventListener("change", () => {
+  albumIndex = document.getElementById("album").value;
+  cursor = -1;
   apply();
 });
 qEl.addEventListener("input", () => { cursor = -1; apply(); });
@@ -297,6 +357,7 @@ fetch("songs.json")
   .then(data => {
     songs = data;
     renderChips();
+    renderAlbums();
     apply();
   })
   .catch(() => {
