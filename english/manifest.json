@@ -1,0 +1,14 @@
+{
+  "name": "老爹英语 · 零基础美式英语365天",
+  "short_name": "老爹英语",
+  "description": "每天60分钟，听说读写译+间隔复习的零基础美式英语课程",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f6f8",
+  "theme_color": "#0d9488",
+  "icons": [
+    { "src": "icons/eng-icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/eng-icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

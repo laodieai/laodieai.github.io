@@ -16,6 +16,9 @@ function defaultState(){
     catScores: {},          // cat -> [pct,...]
     daily: {},              // day -> {date, minutes}
     settings: { rate: "slow", repeat: 1 },  // 语速偏好；朗读遍数 ×1/×2/×3
+    version: 2,             // 数据结构版本（旧版 eng365-v1 自动迁移，不丢记录）
+    lessonProgress: {},     // day -> 六环节完成情况/听写成绩/开口次数（js/lesson6.js）
+    speakingLog: [],        // 跟读自检记录（仅本机）
   };
 }
 
@@ -23,8 +26,22 @@ let S;
 try { S = JSON.parse(localStorage.getItem(STORE_KEY)) || defaultState(); }
 catch(e){ S = defaultState(); }
 S = Object.assign(defaultState(), S);
+/* 旧版本数据迁移：eng365-v1 学习记录全部保留，只补齐新增字段 */
+if(!S.version){ S.version = 2; }
+if(!S.lessonProgress) S.lessonProgress = {};
+if(!S.speakingLog) S.speakingLog = [];
 
-function save(){ localStorage.setItem(STORE_KEY, JSON.stringify(S)); }
+let __saveWarnTimer = null;
+function save(){
+  try{
+    S.updatedAt = Date.now();
+    localStorage.setItem(STORE_KEY, JSON.stringify(S));
+  }catch(e){
+    /* 隐私模式/存储已满：进度这次可能没存上，明确提示，绝不假装保存成功 */
+    clearTimeout(__saveWarnTimer);
+    __saveWarnTimer = setTimeout(()=>toast("学习记录保存失败：请退出浏览器无痕模式，或在「能力报告」里导出档案"), 300);
+  }
+}
 
 /* ================= 工具 ================= */
 const $ = s => document.querySelector(s);
@@ -74,21 +91,25 @@ function speak(text, rate, btn){
   let left = repeatTimes();
   showPauseFab();
   const play = () => {
-    /* 安卓 Chrome 适配：cancel 后立即 speak 可能被系统丢弃，稍等再发声 */
-    setTimeout(() => {
-      if(gen !== __gen) return;
-      try{
-        const u = new SpeechSynthesisUtterance(fixLetterCase(text));
-        u.lang = "en-US";
-        if(VOICE) u.voice = VOICE;
-        u.rate = (rate || 0.9) * factor;
-        u.onend = u.onerror = () => {
-          if(--left > 0 && gen === __gen){ setTimeout(()=>{ if(gen === __gen) play(); }, 450); }
-          else { btn && btn.classList.remove("speaking"); c && c.classList.remove("reading"); hidePauseFab(); }
-        };
-        speechSynthesis.speak(u);
-      }catch(err){ btn && btn.classList.remove("speaking"); c && c.classList.remove("reading"); hidePauseFab(); }
-    }, 60);
+    const u = new SpeechSynthesisUtterance(fixLetterCase(text));
+    u.lang = "en-US";
+    if(VOICE) u.voice = VOICE;
+    u.rate = (rate || 0.9) * factor;
+    let audioFailed = false;
+    u.onerror = (ev)=>{
+      if(audioFailed) return;
+      audioFailed = true;
+      btn && btn.classList.remove("speaking"); c && c.classList.remove("reading"); hidePauseFab();
+      const why = ev && ev.error;
+      if(why && why!=="canceled" && why!=="interrupted")
+        toast("音频播放失败：可到 系统设置→辅助功能→朗读内容 里添加英语声音，或换 Chrome/Safari 重试");
+    };
+    u.onend = () => {
+      if(audioFailed) return;
+      if(--left > 0 && gen === __gen){ setTimeout(()=>{ if(gen === __gen) play(); }, 450); }
+      else { btn && btn.classList.remove("speaking"); c && c.classList.remove("reading"); hidePauseFab(); }
+    };
+    speechSynthesis.speak(u);
   };
   play();
 }
@@ -1097,25 +1118,7 @@ function importData(){
   inp.click();
 }
 
-/* ================= 口语麦克风 ================= */
-document.addEventListener("click", e=>{
-  const btn = e.target.closest("[data-mic]");
-  if(!btn) return;
-  const target = btn.getAttribute("data-mic").replace(/（.*?）/g,"").replace(/\.\.\.|…/g,"").trim();
-  const rid = "mic-result-"+btn.getAttribute("data-qid");
-  const box = document.getElementById(rid);
-  const rec = makeRecognizer(text=>{
-    const sc = matchScore(target, text);
-    const pct = Math.round(sc*100);
-    box.style.display = "block";
-    box.className = "mic-result " + (pct>=80?"good":pct>=50?"ok":"bad");
-    box.innerHTML = `你说的是：“${esc(text)}” · 匹配度 ${pct}%` + (pct<50?`<br><span class="small">提示：${esc(target)}</span>`:"");
-    if(pct<50) addError("口语", `口语：${target}`, `你的发音识别为：“${text}”`, null, S.currentDay), save(), updateBadges();
-  }, ()=>{ btn.classList.remove("recording"); btn.innerHTML = '<i data-lucide="mic"></i>我说一遍'; refreshIcons(); });
-  if(!rec){ toast("当前浏览器不支持语音识别（推荐用 Chrome）"); return; }
-  btn.classList.add("recording"); btn.innerHTML = '<i data-lucide="mic"></i>正在听…';
-  rec.start();
-});
+/* 口语麦克风交互已升级到 js/lesson6.js（可录音对照、识别失败有兜底、不虚构发音评分） */
 
 /* ================= 启动 ================= */
 $("#menuBtn").addEventListener("click", ()=>$("#sidebar").classList.toggle("open"));
@@ -1168,48 +1171,3 @@ go("dashboard");
 
 /* lucide 为 defer 加载，首屏渲染后再补一次图标替换 */
 window.addEventListener("load", ()=>{ refreshIcons(); setTimeout(refreshIcons, 500); });
-
-/* ================= 云端同步（换浏览器/换手机不丢学习记录） ================= */
-(function(){
-  if(!window.fetch) return;
-  const APP = "english";
-  function hasProgress(st){
-    return !!(st && (st.currentDay > 1
-      || Object.keys(st.completedDays || {}).length
-      || (st.tests || []).length
-      || (st.errors || []).length
-      || Object.keys(st.vocab || {}).length));
-  }
-  let timer = null;
-  function push(){
-    clearTimeout(timer);
-    timer = setTimeout(()=>{
-      try{
-        S.updatedAt = Date.now();
-        try{ localStorage.setItem(STORE_KEY, JSON.stringify(S)); }catch(e){}
-        fetch("/.netlify/functions/progress?app=" + APP, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(S)
-        }).catch(()=>{});
-      }catch(e){}
-    }, 800);
-  }
-  const _save = save;
-  save = function(){ _save(); push(); };
-  fetch("/.netlify/functions/progress?app=" + APP)
-    .then(r => r.ok ? r.json() : null)
-    .then(cloud => {
-      if(!cloud){ if(hasProgress(S)) push(); return; }
-      const lt = S.updatedAt || 0, ct = cloud.updatedAt || 0;
-      const lp = hasProgress(S), cp = hasProgress(cloud);
-      if(!lp && cp || (lp && cp && ct > lt)){
-        try{ localStorage.setItem(STORE_KEY, JSON.stringify(cloud)); }catch(e){}
-        if(!sessionStorage.getItem("cloudReloaded")){
-          sessionStorage.setItem("cloudReloaded", "1");
-          location.reload();
-        }
-      } else if(lp && (!cp || lt > ct)){ push(); }
-    })
-    .catch(()=>{});
-})();
