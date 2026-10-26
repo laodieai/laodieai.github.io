@@ -1,4 +1,4 @@
-const CACHE = "cuoti-v2";
+const CACHE = "cuoti-v3";
 const ASSETS = ["./", "./index.html", "./styles.css", "./app.js", "./data.js",
   "./manifest.webmanifest", "./icons/icon.svg", "./icons/icon-180.png", "./icons/icon-512.png"];
 self.addEventListener("install", e => {
