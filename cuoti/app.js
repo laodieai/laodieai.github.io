@@ -31,18 +31,18 @@ SUBJECTS.forEach(s=>{
 });
 function subject(){ return SUBJECTS.find(s=>s.id===formSubject); }
 function fillChapters(){
-  const sel=document.getElementById("chapterSel");
-  sel.innerHTML="";
-  const dl=document.getElementById("topicList"); dl.innerHTML="";
-  const custom=(state.customTopics&&state.customTopics[formSubject])||[];
-  subject().groups.forEach(g=>{
-    const og=document.createElement("optgroup"); og.label=g.chapter;
-    og.appendChild(new Option(g.chapter,g.chapter));
-    sel.appendChild(og);
-    g.topics.forEach(t=>dl.appendChild(new Option(t)));
-  });
-  if(custom.length){ const og=document.createElement("optgroup"); og.label="我自己加过的";
-    custom.forEach(t=>og.appendChild(new Option(t))); dl.appendChild(og); }
+  const chapterInput=document.getElementById("chapterSel");
+  const chapterList=document.getElementById("chapterList");
+  const topicList=document.getElementById("topicList");
+  chapterList.innerHTML=""; topicList.innerHTML="";
+  const customChapters=(state.customChapters&&state.customChapters[formSubject])||[];
+  const customTopics=(state.customTopics&&state.customTopics[formSubject])||[];
+  subject().groups.forEach(g=>chapterList.appendChild(new Option(g.chapter)));
+  customChapters.forEach(ch=>chapterList.appendChild(new Option(ch)));
+  subject().groups.forEach(g=>g.topics.forEach(t=>topicList.appendChild(new Option(t))));
+  customTopics.forEach(t=>topicList.appendChild(new Option(t)));
+  const known=[...chapterList.options].some(o=>o.value===chapterInput.value.trim());
+  if(!known) chapterInput.value=subject().groups[0].chapter;
   subjectPick.querySelectorAll(".chip.on").forEach(c=>c.style.background=subject().color);
   // 错因 chips（随科目刷新时不动）
 }
@@ -120,10 +120,15 @@ document.getElementById("addForm").onsubmit=async e=>{
     createdAt:now, updatedAt:now, stage:1,
     nextAt:now+state.gaps[0]*DAY, log:[], varAdvances:0
   };
-  const builtin=subject().groups.some(g=>g.topics.includes(m.topic));
-  if(!builtin && m.topic!=="未分类"){
+  const builtinTopic=subject().groups.some(g=>g.topics.includes(m.topic));
+  if(!builtinTopic && m.topic!=="未分类"){
     state.customTopics[formSubject]=state.customTopics[formSubject]||[];
     if(!state.customTopics[formSubject].includes(m.topic)) state.customTopics[formSubject].push(m.topic);
+  }
+  const builtinChapter=subject().groups.some(g=>g.chapter===m.chapter);
+  if(!builtinChapter && m.chapter){
+    state.customChapters[formSubject]=state.customChapters[formSubject]||[];
+    if(!state.customChapters[formSubject].includes(m.chapter)) state.customChapters[formSubject].push(m.chapter);
   }
   if(state.pickedImg){ await imgPut(m.id,state.pickedImg); state.pickedImg=null; }
   state.mistakes.push(m); save();

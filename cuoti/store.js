@@ -12,7 +12,7 @@ const STAGE_PASSED = 6;                  // 阶段 1待订正 2待首次独立�
 
 function defaultState(){
   return { app:APP_TAG, ver:STATE_VER, mistakes:[], gaps:GAPS_DEFAULT.slice(),
-    customTopics:{}, variants:{}, retests:[], snapshots:[], sprint:null, pickedImg:null };
+    customTopics:{}, customChapters:{}, variants:{}, retests:[], snapshots:[], sprint:null, pickedImg:null };
 }
 function normalizeGaps(g){
   if(Array.isArray(g) && g.length===5 && g.every(x=>Number.isFinite(+x) && +x>=0))
@@ -54,6 +54,7 @@ function migrateState(raw){
   s.retests = Array.isArray(raw.retests) ? raw.retests.filter(r=>r&&r.at) : [];
   s.snapshots = Array.isArray(raw.snapshots) ? raw.snapshots : [];
   s.customTopics = raw.customTopics && typeof raw.customTopics==="object" ? raw.customTopics : {};
+  s.customChapters = raw.customChapters && typeof raw.customChapters==="object" ? raw.customChapters : {};
   if(!s.sprint || typeof s.sprint!=="object") s.sprint = null;
   return s;
 }
@@ -236,6 +237,11 @@ async function mergeImport(p){
   Object.entries(incoming.customTopics||{}).forEach(([sub,arr])=>{
     const set=new Set([...(state.customTopics[sub]||[]),...arr]);
     state.customTopics[sub]=[...set];
+  });
+  // 自定义章节合并去重
+  Object.entries(incoming.customChapters||{}).forEach(([sub,arr])=>{
+    const set=new Set([...(state.customChapters[sub]||[]),...arr]);
+    state.customChapters[sub]=[...set];
   });
   // 复测记录去重（at+mistakeId+kind）
   const seen=new Set(state.retests.map(r=>r.at+"|"+r.mistakeId+"|"+r.kind+"|"+(r.variantId||"")));

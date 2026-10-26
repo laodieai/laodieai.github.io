@@ -1,4 +1,4 @@
-const CACHE = "cuoti-v4";
+const CACHE = "cuoti-v5";
 const ASSETS = ["./", "./index.html", "./styles.css",
   "./data.js", "./store.js", "./analyze.js", "./variants.js", "./sprint.js", "./plan.js", "./app.js",
   "./manifest.webmanifest", "./icons/icon.svg", "./icons/icon-180.png", "./icons/icon-512.png"];

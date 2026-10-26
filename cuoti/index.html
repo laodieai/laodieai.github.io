@@ -79,7 +79,8 @@
       <div class="subject-pick" id="subjectPick"></div>
 
       <label class="field-label">章节</label>
-      <select id="chapterSel" required></select>
+      <input id="chapterSel" list="chapterList" placeholder="选择章节，或直接输入教材里的章节名" required autocomplete="off">
+      <datalist id="chapterList"></datalist>
 
       <label class="field-label">知识点（可自己输入）</label>
       <input id="topicInput" list="topicList" placeholder="选一个或直接打字" autocomplete="off">
