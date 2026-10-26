@@ -1,5 +1,6 @@
-const CACHE = "cuoti-v3";
-const ASSETS = ["./", "./index.html", "./styles.css", "./app.js", "./data.js",
+const CACHE = "cuoti-v4";
+const ASSETS = ["./", "./index.html", "./styles.css",
+  "./data.js", "./store.js", "./analyze.js", "./variants.js", "./sprint.js", "./plan.js", "./app.js",
   "./manifest.webmanifest", "./icons/icon.svg", "./icons/icon-180.png", "./icons/icon-512.png"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(()=>self.skipWaiting()));

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>错题闭环本 · 八下</title>
+<title>八年级提分系统 · 错题闭环本</title>
 <meta name="theme-color" content="#1971c2">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
@@ -16,36 +16,55 @@
   <!-- 今日 -->
   <section class="view active" id="view-today">
     <header class="page-head">
-      <h1>今日复习</h1>
+      <h1>今日提分</h1>
       <p class="sub" id="todayDate"></p>
     </header>
+
+    <!-- 今日提分任务 -->
+    <div class="task-wrap">
+      <div class="task-head">
+        <h2 class="sec-title" style="margin:0">🎯 今日提分任务</h2>
+        <div class="task-chips" id="taskSubjects"></div>
+      </div>
+      <div class="task-progress-wrap" id="taskProgressWrap" hidden>
+        <div class="task-progress"><i id="taskProgressBar" style="width:0%"></i></div>
+        <div class="small muted" id="taskProgressText"></div>
+      </div>
+      <div id="taskArea" class="task-area"></div>
+    </div>
+
+    <!-- 冲刺 -->
+    <div id="sprintCard"></div>
+
+    <h2 class="sec-title">⏰ 到期独立复测</h2>
     <div class="due-hero" id="dueHero">
       <div class="due-num" id="dueNum">0</div>
-      <div class="due-text">道错题到了复测时间<br><small>遮住答案重做 · 三次独立做对才过关</small></div>
+      <div class="due-text">道错题到了复测时间<br><small>遮住答案独立重做 · 看答案会做不算过关</small></div>
     </div>
     <div id="dueList" class="cards"></div>
 
-    <h2 class="sec-title">📊 最近情况</h2>
+    <h2 class="sec-title">📊 最近情况 <small class="muted" id="recentChange" style="font-weight:400"></small></h2>
     <div class="stat-row">
       <div class="stat-box"><b id="stTotal">0</b><span>全部错题</span></div>
-      <div class="stat-box warn"><b id="stLearning">0</b><span>未过关</span></div>
-      <div class="stat-box ok"><b id="stPassed">0</b><span>已过关</span></div>
+      <div class="stat-box warn"><b id="stLearning">0</b><span>未掌握</span></div>
+      <div class="stat-box ok"><b id="stPassed">0</b><span>已掌握</span></div>
       <div class="stat-box"><b id="stWeek">0</b><span>本周新增</span></div>
     </div>
-    <h2 class="sec-title">🔥 薄弱知识点 Top 5</h2>
+    <h2 class="sec-title">🔥 当前最薄弱知识点</h2>
     <div id="weakList" class="weak-list"></div>
   </section>
 
   <!-- 错题本 -->
   <section class="view" id="view-list">
     <header class="page-head"><h1>错题本</h1></header>
+    <input id="fSearch" placeholder="🔍 搜知识点 / 章节 / 错因" style="margin-bottom:10px">
     <div class="filters">
       <select id="fSubject"><option value="">全部科目</option></select>
       <select id="fStatus">
-        <option value="learning">未过关</option>
         <option value="due">今日到期</option>
-        <option value="passed">已过关</option>
-        <option value="all">全部</option>
+        <option value="learning">未掌握</option>
+        <option value="passed">已掌握</option>
+        <option value="all" selected>全部</option>
       </select>
     </div>
     <div id="mistakeList" class="cards"></div>
@@ -71,53 +90,58 @@
 
       <label class="field-label">题目照片</label>
       <label class="shot">
-        <input type="file" id="imgInput" accept="image/*" hidden>
+        <input type="file" id="imgInput" accept="image/*" capture="environment" hidden>
         <span id="shotHint">📷 拍照 / 点此选图</span>
         <img id="shotPreview" hidden alt="错题照片">
       </label>
 
-      <label class="field-label">备注（正确思路 / 答案，可选）</label>
-      <textarea id="noteInput" rows="2" placeholder="例：配方时常数项要加一次减一次"></textarea>
+      <details class="diag-quick">
+        <summary>错因三问（可选，订正时也能补）</summary>
+        <input id="diagCause" placeholder="① 错误原因：具体哪一步/哪个概念错了">
+        <input id="diagWay" placeholder="② 正确思路：应该怎么做">
+        <input id="diagAvoid" placeholder="③ 下次如何避免：一句话提醒自己">
+      </details>
 
       <button type="submit" class="btn-primary">保存错题</button>
     </form>
   </section>
 
-  <!-- 统计 -->
+  <!-- 分析 -->
   <section class="view" id="view-stats">
-    <header class="page-head"><h1>薄弱点分析</h1><p class="sub">同一知识点错 2 次以上，优先补</p></header>
-    <div id="subjectBars" class="bars"></div>
-    <h2 class="sec-title">知识点错次排行</h2>
-    <div id="topicRank" class="weak-list"></div>
+    <header class="page-head"><h1>薄弱点分析</h1><p class="sub">按近期错误、复测失败和当前掌握度综合排序，不只看错误总数</p></header>
+    <div class="stat-row" style="grid-template-columns:repeat(3,1fr)" id="anStats"></div>
+    <h2 class="sec-title">各科未掌握情况</h2>
+    <div id="subjSummary" class="bars"></div>
+    <h2 class="sec-title">掌握度变化趋势</h2>
+    <div id="trendBox"></div>
+    <h2 class="sec-title">知识点薄弱排行</h2>
+    <div id="weakRank" class="weak-list"></div>
   </section>
 
-  <!-- 设置 -->
+  <!-- 备份设置 -->
   <section class="view" id="view-more">
     <header class="page-head"><h1>备份与设置</h1></header>
     <div class="more-card">
       <h3>数据备份</h3>
-      <p class="hint">照片存在本机浏览器里。换手机或清理缓存前，先导出备份文件。</p>
-      <button class="btn-line" id="exportBtn">⬇️ 导出全部数据</button>
-      <label class="btn-line file-btn">⬆️ 导入备份文件<input type="file" id="importInput" accept="application/json" hidden></label>
+      <p class="hint" id="storeInfo"></p>
+      <button class="btn-line" id="exportBtn">⬇️ 导出全部数据（题目/照片/错因/复测/计划）</button>
+      <label class="btn-line file-btn">⬆️ 导入备份（先校验再合并，失败不影响现有数据）<input type="file" id="importInput" accept="application/json" hidden></label>
     </div>
     <div class="more-card">
-      <h3>复习节奏</h3>
-      <p class="hint">录入当天订正 → 3 天后复测 → 2 周后再复测，两次都独立做对即过关；中途做错重新计时。</p>
-      <label class="switch-row">复测通过间隔（天）
-        <span>第1次 <input type="number" id="gap1" min="1" max="30" style="width:52px">
-        · 第2次 <input type="number" id="gap2" min="1" max="60" style="width:52px"></span>
-      </label>
+      <h3>复习间隔（天，可改）</h3>
+      <p class="hint">订正当天 → 首次独立复测 → 连续做对逐步拉长；做错自动回到短间隔。</p>
+      <div class="gap-grid" id="gapVals"></div>
     </div>
     <div class="more-card danger">
       <h3>清空数据</h3>
-      <button class="btn-danger" id="wipeBtn">清空全部错题和照片</button>
+      <button class="btn-danger" id="wipeBtn">清空全部错题、变式题和照片</button>
     </div>
-    <p class="foot-note">错题闭环本 · 八下（语数英科）· 数据只在本机</p>
+    <p class="foot-note">八年级提分系统 · 错题闭环本（语数英科）· 数据只在本机，不上传服务器</p>
   </section>
 
   <nav class="tabbar">
     <button class="tab active" data-view="today"><span>📅</span>今日</button>
-    <button class="tab" data-view="list"><span>📚</span>错题本</button>
+    <button class="tab" data-view="list"><span>📚</span>错题</button>
     <button class="tab add" data-view="add"><span>＋</span>录入</button>
     <button class="tab" data-view="stats"><span>📊</span>分析</button>
     <button class="tab" data-view="more"><span>⚙️</span>备份</button>
@@ -133,8 +157,31 @@
   </div>
 </div>
 
+<!-- 同类变式训练弹层 -->
+<div class="modal" id="trainModal" hidden>
+  <div class="modal-box">
+    <button class="modal-x">×</button>
+    <h2 class="train-title" id="trainTitle"></h2>
+    <div id="trainBody"></div>
+  </div>
+</div>
+
+<!-- 冲刺弹层 -->
+<div class="modal" id="sprintModal" hidden>
+  <div class="modal-box">
+    <button class="modal-x">×</button>
+    <h2 class="train-title" id="sprintTitle"></h2>
+    <div id="sprintBody"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 <script src="data.js"></script>
+<script src="store.js"></script>
+<script src="analyze.js"></script>
+<script src="variants.js"></script>
+<script src="sprint.js"></script>
+<script src="plan.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

@@ -1,15 +1,27 @@
 {
-  "name": "错题闭环本 · 八下",
+  "name": "八年级提分系统 · 错题闭环本",
   "short_name": "错题本",
-  "description": "八年级下册 语文/数学/英语/科学 错题录入与定时复测",
+  "description": "八年级 语文/数学/英语/科学 错题闭环：今日提分任务/错因诊断/同类变式/间隔复测/薄弱点分析",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f4f6f9",
   "theme_color": "#1971c2",
   "lang": "zh-CN",
   "icons": [
-    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml" },
-    { "src": "icons/icon-180.png", "sizes": "180x180", "type": "image/png" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "icons/icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
   ]
 }
