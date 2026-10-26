@@ -223,6 +223,66 @@ function listeningHTML(L){
 }
 
 /* ---------- 环节3：口语卡片（录音对照 + 识别自检 + 键盘兜底） ---------- */
+/* ---------- 环节2：先听后选（确定性出题，同日稳定，错题自动入本） ---------- */
+function listenChoiceItems(day){
+  var L = getLesson(day);
+  var items = [];
+  var neigh=[];
+  [day-2, day-1, day+1, day+2].forEach(function(d2){
+    if(d2>=1 && d2<=365){ var LL=getLesson(d2); if(LL) neigh.push(LL); }
+  });
+  /* 练习1：听音选中文意思 */
+  var words = shuffleR((L.vocab||[]).filter(function(v){return v.cn;}), seeded(day*131+3));
+  if(words[0]){
+    var bag={};
+    (L.vocab||[]).forEach(function(v){ if(v.cn) bag[v.cn]=1; });
+    neigh.forEach(function(LL){ (LL.vocab||[]).forEach(function(v){ if(v.cn) bag[v.cn]=1; }); });
+    var distract = shuffleR(Object.keys(bag).filter(function(c){return c!==words[0].cn;}), seeded(day*977+11)).slice(0,3);
+    if(distract.length>=1){
+      var opts = shuffleR([words[0].cn].concat(distract), seeded(day*1597+13));
+      items.push({kind:"mean", audio:words[0].w, q:"先听单词（可重播），选出它的中文意思",
+        options:opts, answer:opts.indexOf(words[0].cn),
+        explain:"「"+words[0].w+"」意思是 "+words[0].cn});
+    }
+  }
+  /* 练习2：听音选句 */
+  var drills=(L.listening||[]).filter(function(d){return d.say && d.show;});
+  var pool=drills.slice();
+  neigh.forEach(function(LL){ (LL.listening||[]).forEach(function(d){ if(d && d.say && d.show) pool.push(d); }); });
+  var cand = shuffleR(drills, seeded(day*2027+17));
+  if(cand[0] && pool.length>=2){
+    var shows={};
+    pool.forEach(function(d){ shows[d.show]=1; });
+    var dsent = shuffleR(Object.keys(shows).filter(function(x){return x!==cand[0].show;}), seeded(day*3001+19)).slice(0,3);
+    if(dsent.length>=1){
+      var sopts = shuffleR([cand[0].show].concat(dsent), seeded(day*4003+23));
+      items.push({kind:"sent", audio:cand[0].say, q:"先盲听句子（可重播），选出你听到的内容",
+        options:sopts, answer:sopts.indexOf(cand[0].show),
+        explain:"听到的是「"+cand[0].show+"」"+(cand[0].cn?"（"+cand[0].cn+"）":"")});
+    }
+  }
+  return items;
+}
+function listenQuizHTML(day){
+  var items = listenChoiceItems(day);
+  if(!items.length) return "";
+  var rec = (l6prog(day).listen)||{};
+  return '<div class="l6-lq card-pad"><div class="sec-title" style="font-size:15px;margin-bottom:10px"><i data-lucide="ear"></i>先听后选（先盲听再点答案，可重播；答错自动进错题本）</div>'+
+    items.map(function(it,i){
+      var done = rec["i"+i];
+      return '<div class="l6-lq-item" data-lqi="'+i+'">'+
+        '<div class="l6-lq-q"><span class="quiz-num">练习 '+(i+1)+'</span> '+esc(it.q)+' '+speakBtn(it.audio,0.78)+'</div>'+
+        '<div class="l6-lq-opts">'+it.options.map(function(o,j){
+          var cls="l6-lq-opt";
+          if(done){ if(j===it.answer) cls+=" correct"; else if(j===done.picked) cls+=" wrong"; }
+          return '<button class="'+cls+'" data-lq="'+i+'" data-j="'+j+'"'+(done?' disabled':'')+'>'+esc(o)+'</button>';
+        }).join("")+'</div>'+
+        (done?'<div class="l6-lq-fb '+(done.ok?"pass":"fail")+'"><span>'+(done.ok?"✅ 听对了":"❌ 没听出来，已进错题本")+' · '+esc(it.explain)+'</span>'+
+          '<button class="reveal-btn" data-say="'+esc(it.audio)+'" data-rate="0.7">重听</button></div>':"")+
+        '</div>';
+    }).join("")+'</div>';
+}
+
 function speakingHTML(day, L){
   var intro = '<div class="tip-box l6-honest" style="margin-top:0"><b>说实话</b> · 浏览器语音识别只能把声音转成文字，'+
     '<b>不能判定单个音素、重音和声调</b>，所以本站不提供虚假的“发音 95 分”。练法：听原声 → 录音 → 回放自己的录音与原声对比 → 用自检看哪些词没被识别到 → 再来一遍。</div>';
@@ -385,7 +445,7 @@ window.renderLesson = function(day){
 
   var readBtn = '<button class="btn btn-brand" onclick="readWholePage(this)"><i data-lucide="audio-lines"></i>整页慢读（再点停止）</button>';
   var s1 = sec("review", "", reviewHTML(day));
-  var s2 = sec("listen", '<button class="btn btn-outline btn-sm l6-head-btn" data-say="'+esc((L.listening||[]).map(function(d){return d.say;}).join(" … "))+'" data-rate="0.78" data-follow=".drill"><i data-lucide="play"></i>整段听力</button>', listeningHTML(L));
+  var s2 = sec("listen", '<button class="btn btn-outline btn-sm l6-head-btn" data-say="'+esc((L.listening||[]).map(function(d){return d.say;}).join(" … "))+'" data-rate="0.78" data-follow=".drill"><i data-lucide="play"></i>整段听力</button>', listeningHTML(L)+listenQuizHTML(day));
   var s3 = sec("speak", "", speakingHTML(day,L));
   var s4body =
     '<div class="tip-box" style="background:var(--brand-soft);border-color:#bfe7e2;color:var(--brand-deep);margin-top:0"><b>音标 ≠ 自然拼读</b> · 音标（如 /ˈæpəl/）是字典里的注音符号；自然拼读是“字母拼写和发音的规律”（例如字母 a 在 cat 里常读 /æ/）。两者配合用，不是一回事。</div>'+
@@ -567,6 +627,35 @@ document.addEventListener("click", function(e){
       var anyHidden=[].slice.call(card.querySelectorAll(".l6-cn")).some(function(x){return !x.closest(".l6-read-item").classList.contains("open");});
       card.querySelectorAll(".l6-read-item").forEach(function(it){ it.classList.toggle("open", anyHidden); });
     }
+    return;
+  }
+
+  /* 听力：先听后选 */
+  var lq = e.target.closest("[data-lq]");
+  if(lq){
+    var lday = LESSON_DAY, li = +lq.getAttribute("data-lq"), lj = +lq.getAttribute("data-j");
+    var lits = listenChoiceItems(lday), lit = lits[li];
+    if(!lit) return;
+    var lp = l6prog(lday);
+    if(!lp.listen) lp.listen={};
+    if(lp.listen["i"+li]) return; // 已答过，锁定
+    var lok = lj===lit.answer;
+    lp.listen["i"+li] = {picked:lj, ok:lok, at:todayStr()};
+    var front = "听音："+lit.audio;
+    if(!lok){
+      addError("听力", front, lit.explain, {q:lit.q, options:lit.options, answer:lit.answer, say:lit.audio, explain:lit.explain}, lday);
+      toast("这题没听出来，已收进错题本，可在复习中心重练");
+    } else {
+      var oldE = S.errors.find(function(x){return !x.done && x.front===front;});
+      if(oldE) oldE.done = true;
+    }
+    save();
+    var box = lq.closest(".l6-lq");
+    var tmp = document.createElement("div");
+    tmp.innerHTML = listenQuizHTML(lday);
+    var fresh = tmp.querySelector(".l6-lq");
+    if(box && fresh) box.replaceWith(fresh);
+    refreshIcons();
     return;
   }
 

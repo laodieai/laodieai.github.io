@@ -573,3 +573,19 @@ html,body{overflow-x:hidden;max-width:100%}
   .l6-msg{max-width:94%}
   .l6-dash-dot{padding:6px 12px}
 }
+
+/* 环节2 先听后选 */
+.l6-lq{ margin-top:12px; border-top:1px dashed var(--border); }
+.l6-lq-item{ padding:10px 0; border-bottom:1px dashed var(--border); }
+.l6-lq-item:last-child{ border-bottom:0; }
+.l6-lq-q{ display:flex; align-items:center; gap:8px; font-weight:600; font-size:14px; margin-bottom:8px; flex-wrap:wrap; }
+.l6-lq-opts{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.l6-lq-opt{ text-align:left; padding:10px 12px; border:1.5px solid var(--border); border-radius:10px; background:#fff; font-size:14px; line-height:1.35; cursor:pointer; min-height:42px; color:var(--text); }
+.l6-lq-opt:active{ transform:scale(.98); }
+.l6-lq-opt.correct{ border-color:var(--green); background:var(--green-soft); color:#1c6b3c; font-weight:700; }
+.l6-lq-opt.wrong{ border-color:var(--red); background:#fdecec; color:#a32727; font-weight:700; }
+.l6-lq-opt:disabled{ opacity:.92; cursor:default; }
+.l6-lq-fb{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:8px; font-size:13px; padding:8px 10px; border-radius:8px; flex-wrap:wrap; }
+.l6-lq-fb.pass{ background:var(--green-soft); color:#1c6b3c; }
+.l6-lq-fb.fail{ background:#fdecec; color:#a32727; }
+@media(max-width:560px){ .l6-lq-opts{ grid-template-columns:1fr; } }
