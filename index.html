@@ -293,7 +293,7 @@
   <p>没有找到匹配的网站，换个关键词试试</p>
 </div>
 
-<footer>老爹世界网站 · <span id="total"></span> · Codex 出品</footer>
+
 
 <script>
 /* ==================== 按分类数据 ==================== */
@@ -1354,7 +1354,8 @@ document.getElementById("viewTabs").addEventListener("click", e => {
 /* ==================== 统计 ==================== */
 const catCount = SITES.length;
 const countryCount = COUNTRIES.reduce((n, c) => n + c.sites.length, 0);
-document.getElementById("total").textContent =
+const totalEl = document.getElementById("total");
+if (totalEl) totalEl.textContent =
   "共 " + (catCount + countryCount) + " 个网站 · " + CATEGORIES.length + " 大分类 · " + COUNTRIES.length + " 个国家/地区";
 
 /* ==================== 深色模式 ==================== */
