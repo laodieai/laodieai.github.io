@@ -1,3 +1,4 @@
+// v=7 republish 2026-10-30T16:17:30+0800
 // 老爹排档扫码点菜：GitHub 固定入口 → 跳到老爹 Mac 上正在运行的点菜系统（公网网址写在 live.json）
 (function () {
   var REPO_API = 'https://api.github.com/repos/laodieai/laodieai.github.io/contents/paidang/live.json?ref=main';
