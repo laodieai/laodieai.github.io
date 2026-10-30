@@ -1,14 +1,13 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>老爹排档扫码点菜 · 预览</title>
-<meta name="theme-color" content="#c62828"><link rel="stylesheet" href="common.css">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>老爹排档扫码点菜</title>
+<meta name="theme-color" content="#c62828"><link rel="stylesheet" href="demo/common.css">
 <style>.ent a{display:block;text-decoration:none;text-align:center;margin:14px 0;font-size:1.35rem;padding:18px}.ent small{display:block;font-size:.85rem;font-weight:400;opacity:.9}</style></head><body>
-<div class="topbar"><div style="font-size:1rem">老爹排档 · 鳌江</div><div style="font-size:1.8rem;font-weight:900">扫码点菜 预览</div></div>
+<div class="topbar"><div style="font-size:1rem">老爹排档 · 鳌江</div><div style="font-size:1.8rem;font-weight:900">扫码点菜</div></div>
 <div class="wrap ent" style="max-width:520px">
-<p style="background:#fff59d;padding:10px;border-radius:10px;font-weight:700">预览演示版：订单只存在本机，不会真的发到后厨。在同一部手机上先点菜，再打开「后厨收银」就能看到订单。</p>
-<a class="btn" href="order.html?t=A1">顾客点菜（A1桌）<small>顾客扫桌卡后看到的页面</small></a>
-<a class="btn ora" href="kitchen.html">后厨 / 收银<small>PIN：8888 · 看单、称重、出菜、结账、导出</small></a>
-<a class="btn blue" href="admin.html">后台管理<small>PIN：8888 · 时价、售罄、菜单、桌数</small></a>
-<a class="btn gray" href="qr.html">桌卡二维码（A6 打印）<small>PIN：8888</small></a>
-<p class="mut" style="font-size:.9rem">菜价均为示例价，待老爹确认。时价菜：在后台「今日时价」填当天单价后，顾客页显示「¥XX/斤（今日价）」。宵夜档套餐 21:30 后才能点。</p>
-<button class="btn line" style="width:100%" onclick="if(confirm('清空本机演示数据（订单、改过的菜单）？')){demoReset();alert('已重置')}">重置演示数据</button>
-</div><script src="seed.js"></script><script src="qrcode.min.js"></script><script src="mock.js"></script></body></html>
+<p style="background:#e8f5e9;padding:10px;border-radius:10px;font-weight:700">正式版：顾客扫桌上二维码点的菜，会实时出现在「后厨出单」里。系统运行在店里的 Mac 上，Mac 要一直开着、连着网。</p>
+<a class="btn ora" href="kitchen.html">后厨出单<small>PIN：8888 · 看单、称重、出菜、结账、导出今日订单</small></a>
+<a class="btn blue" href="admin.html">收银后台<small>PIN：8888 · 今日时价、售罄、菜单、桌号</small></a>
+<a class="btn" href="order.html?t=A1">顾客点菜（A1 号桌，看看效果）<small>顾客扫桌卡后看到的就是这个页面</small></a>
+<a class="btn gray" href="qr.html">桌卡二维码（A6 打印）<small>PIN：8888 · 和已印好的桌卡是同一个网址</small></a>
+<p class="mut" style="font-size:.9rem">打不开？在 Mac 的「终端」里运行 <code>~/laodie-paidang/restart.sh</code>，等 1～2 分钟再试。<br><a href="demo/index.html">旧的演示版（数据只存在本机）</a></p>
+</div></body></html>

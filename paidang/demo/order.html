@@ -1,0 +1,184 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>扫码点菜</title><meta name="theme-color" content="#c62828">
+<link rel="stylesheet" href="common.css">
+<style>
+.hd{background:linear-gradient(135deg,var(--red),var(--ora));color:#fff;padding:10px 14px 12px;display:flex;align-items:center;gap:10px}
+.hd .store{font-size:1rem;opacity:.95}
+.hd .tno{font-size:2.1rem;font-weight:900;line-height:1.1}
+.hd .tno small{font-size:1.1rem;font-weight:700}
+.hd .mybtn{margin-left:auto;background:rgba(255,255,255,.22);color:#fff;padding:8px 12px;font-weight:700;font-size:1rem;border:2px solid rgba(255,255,255,.6)}
+.staffbar{background:#4e342e;color:#fff;padding:8px 12px;display:flex;gap:8px;align-items:center;font-weight:700}
+.staffbar select{width:auto;padding:4px 8px}
+.staffbar a{color:#ffcc80;margin-left:auto}
+.notice{background:#fff3e0;color:#8d3b00;text-align:center;padding:8px;font-weight:700;font-size:1rem;border-bottom:1px solid var(--line)}
+.sec h3{margin:18px 4px 6px;font-size:1.25rem;color:var(--red);border-left:6px solid var(--ora);padding-left:8px}
+.dish{background:#fff;border-radius:14px;padding:12px 12px 10px;margin:8px 0;border:1px solid var(--line)}
+.dish .nm{font-size:1.2rem;font-weight:800}
+.dish .ds{font-size:.92rem;color:var(--mut);margin:3px 0 6px}
+.dish .pr{font-size:1.1rem}
+.dish.off{opacity:.5;filter:grayscale(1)}
+.qty{display:flex;align-items:center;gap:6px;margin-left:auto}
+.qty button{width:46px;height:46px;border-radius:50%;font-size:1.7rem;font-weight:900;line-height:1;background:var(--red);color:#fff}
+.qty button.minus{background:#fff;color:var(--red);border:2px solid var(--red)}
+.qty b{min-width:30px;text-align:center;font-size:1.35rem}
+.notebtn{background:none;color:var(--blue);font-size:.95rem;padding:4px 0;text-decoration:underline}
+.dnote{color:var(--ora);font-size:.95rem}
+.offtag{font-weight:800;color:#555}
+.bar{position:fixed;left:0;right:0;bottom:0;background:#2b1a12;color:#fff;display:flex;align-items:center;gap:10px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));z-index:30}
+.bar .sum{font-size:1.35rem;font-weight:800}.bar .sum small{font-size:.85rem;font-weight:400;opacity:.85;display:block}
+.bar .btn{margin-left:auto;font-size:1.2rem;padding:12px 22px}
+.callbtn{position:fixed;right:12px;bottom:92px;z-index:31;background:var(--ora);color:#fff;border-radius:40px;padding:12px 16px;font-weight:800;font-size:1.05rem;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.citem{display:flex;gap:8px;align-items:center;padding:10px 0;border-bottom:1px dashed var(--line)}
+.citem .nm{font-weight:700;font-size:1.08rem}
+.people{display:flex;gap:6px;flex-wrap:wrap}
+.people button{width:48px;height:48px;background:#fbeee3;font-size:1.2rem;font-weight:800}
+.people button.on{background:var(--red);color:#fff}
+.calls{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.calls button{font-size:1.5rem;font-weight:900;padding:24px 0;background:#fff3e0;color:var(--red);border:3px solid var(--ora2)}
+.big-ok{font-size:4rem;color:var(--ok);line-height:1}
+.ono{font-size:2.6rem;font-weight:900;color:var(--red)}
+.tsel{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.tsel a{display:block;background:#fff;border:2px solid var(--line);border-radius:12px;text-align:center;padding:16px 0;font-size:1.3rem;font-weight:800;color:var(--ink);text-decoration:none}
+</style></head><body>
+<div id="app"><p class="center mut" style="margin-top:40vh">加载中…</p></div>
+<script src="seed.js"></script><script src="qrcode.min.js"></script><script src="mock.js"></script><script src="common.js"></script>
+<script>
+const qs = new URLSearchParams(location.search);
+let T = (qs.get('t') || '').trim();
+const STAFF = qs.get('staff') === '1' && !!token();
+let M = null, cart = {}, people = 0, onote = '', bill = null;
+const CK = () => (STAFF ? 'pd_staffcart_' : 'pd_cart_') + T;
+function saveCart() { localStorage.setItem(CK(), JSON.stringify({ cart, people, onote, at: Date.now() })); }
+function loadCart() {
+  try { const j = JSON.parse(localStorage.getItem(CK()) || '{}'); if (j.at && Date.now() - j.at < 12 * 3600e3) { cart = j.cart || {}; people = j.people || 0; onote = j.onote || ''; } } catch (e) {}
+}
+const dish = id => M.dishes.find(d => d.id === id);
+function canOrder(d) { return !d.sold_out && d.available_now; }
+
+async function init() {
+  M = await api('/api/menu'); setRooms(M.rooms);
+  document.title = M.storeName + ' · 扫码点菜';
+  if (!T || !M.tables.includes(T)) return pickTable();
+  loadCart();
+  for (const id in cart) { const d = dish(id); if (!d || !canOrder(d)) delete cart[id]; }
+  render(); refreshBill();
+}
+function pickTable() {
+  $('#app').innerHTML = `<div class="hd"><div><div class="store">${esc(M.storeName)}</div><div class="tno">请选择桌号</div></div></div>
+  <div class="wrap"><p>${T ? `没有「${esc(T)}」这个桌号，` : ''}请扫桌上的二维码，或在下面选您的桌号：</p>
+  <div class="tsel">${M.tables.map(t => `<a href="order.html?t=${encodeURIComponent(t)}${STAFF ? '&staff=1' : ''}">${isRoom(t) ? '包厢 ' : ''}${esc(t)}</a>`).join('')}</div></div>`;
+}
+function render() {
+  const cats = M.categories.filter(c => M.dishes.some(d => d.category === c));
+  $('#app').innerHTML = `
+  ${STAFF ? `<div class="staffbar">代客下单 · 桌号 <select id="tsw">${M.tables.map(t => `<option value="${esc(t)}" ${t === T ? 'selected' : ''}>${isRoom(t) ? '包厢 ' : ''}${esc(t)}</option>`).join('')}</select><a href="kitchen.html">返回后厨</a></div>` : ''}
+  <div class="hd"><div><div class="store">${esc(M.storeName)} · 扫码点菜</div><div class="tno">${tlBig(T)}</div></div>
+    <button class="mybtn" id="mine">本桌已点</button></div>
+  <div class="notice">结账请到收银台扫码付款</div>
+  <div class="tabs" id="tabs">${cats.map((c, i) => `<button class="tab ${i ? '' : 'on'}" data-c="${i}">${esc(c)}</button>`).join('')}</div>
+  <div class="wrap" id="list" style="padding-bottom:120px">${cats.map((c, i) => `<div class="sec" id="sec${i}"><h3>${esc(c)}</h3>${M.dishes.filter(d => d.category === c).map(dishHtml).join('')}</div>`).join('')}
+  <p class="center mut" style="font-size:.85rem">菜价为示例价，以店内为准 · 时价菜按称重计价</p></div>
+  <button class="callbtn" id="call">🔔 呼叫服务员</button>
+  <div class="bar"><div class="sum" id="sum"></div><button class="btn" id="go">选好了</button></div>`;
+  $$('#tabs .tab').forEach(b => b.onclick = () => { const s = $('#sec' + b.dataset.c); window.scrollTo({ top: s.offsetTop - $('#tabs').offsetHeight - 4, behavior: 'smooth' }); });
+  window.onscroll = () => { let cur = 0; $$('.sec').forEach((s, i) => { if (s.getBoundingClientRect().top < $('#tabs').offsetHeight + 60) cur = i; });
+    $$('#tabs .tab').forEach((b, i) => { if (b.classList.toggle('on', i === cur) && i === cur) b.scrollIntoView({ inline: 'center', block: 'nearest' }); }); };
+  $('#list').onclick = e => { const b = e.target.closest('button'); if (!b) return; const id = b.closest('.dish').dataset.id;
+    if (b.dataset.a === 'add') setQty(id, (cart[id]?.qty || 0) + 1); else if (b.dataset.a === 'sub') setQty(id, (cart[id]?.qty || 0) - 1); else if (b.dataset.a === 'note') editNote(id); };
+  $('#go').onclick = openCart; $('#call').onclick = callWaiter; $('#mine').onclick = showBill;
+  if (STAFF) $('#tsw').onchange = e => location.href = 'order.html?staff=1&t=' + encodeURIComponent(e.target.value);
+  updateBar();
+}
+function dishHtml(d) {
+  const c = cart[d.id]; const off = !canOrder(d);
+  return `<div class="dish ${off ? 'off' : ''}" data-id="${esc(d.id)}">
+   <div class="nm">${esc(d.name)}${d.is_signature ? '<span class="badge b-sig">招牌</span>' : ''}${spicy(d.spicy)}${d.sold_out ? '<span class="badge b-out">售罄</span>' : ''}${!d.available_now ? `<span class="badge b-time">${esc(d.available_after)}后供应</span>` : ''}</div>
+   ${d.desc ? `<div class="ds">${esc(d.desc)}</div>` : ''}
+   <div class="row"><div class="pr">${priceHtml(d)}</div>
+   ${off ? `<span class="qty offtag">${d.sold_out ? '已售罄' : '晚上' + esc(d.available_after) + '后供应'}</span>` : `<div class="qty">${c ? `<button class="minus" data-a="sub" aria-label="减">−</button><b>${c.qty}</b>` : ''}<button data-a="add" aria-label="加">+</button></div>`}</div>
+   ${c ? `<div><button class="notebtn" data-a="note">${c.note ? '改备注' : '+ 加备注（如少辣、不要葱）'}</button> ${c.note ? `<span class="dnote">备注：${esc(c.note)}</span>` : ''}</div>` : ''}
+  </div>`;
+}
+function rerenderDish(id) { const el = $(`.dish[data-id="${CSS.escape(id)}"]`); if (el) el.outerHTML = dishHtml(dish(id)); }
+function setQty(id, q) { if (q <= 0) delete cart[id]; else cart[id] = { qty: q, note: cart[id]?.note || '' }; saveCart(); rerenderDish(id); updateBar(); }
+function editNote(id) {
+  const d = dish(id); const m = sheet(`<h2>${esc(d.name)} 备注</h2><div class="row" style="flex-wrap:wrap;gap:8px;margin-bottom:10px">${['少辣', '不要辣', '不要葱', '不要香菜', '多放蒜', '打包'].map(x => `<button class="btn gray sm" data-q="${x}">${x}</button>`).join('')}</div>
+   <input id="nt" maxlength="40" value="${esc(cart[id]?.note || '')}" placeholder="写下您的要求"><div class="row" style="margin-top:12px"><button class="btn gray grow" id="c">取消</button><button class="btn grow" id="s">确定</button></div>`);
+  $$('[data-q]', m).forEach(b => b.onclick = () => { const i = $('#nt', m); i.value = i.value ? i.value + '，' + b.dataset.q : b.dataset.q; });
+  $('#c', m).onclick = m.close; $('#s', m).onclick = () => { cart[id].note = $('#nt', m).value.trim(); saveCart(); rerenderDish(id); m.close(); if (m.reopen) openCart(); };
+  return m;
+}
+function cartCalc() {
+  let n = 0, sum = 0, mk = 0;
+  for (const id in cart) { const d = dish(id), q = cart[id].qty; n += q;
+    if (!d.is_market_price) sum += d.price * q; else if (d.today_price_per_jin != null && !/斤|两|公斤/.test(d.unit)) sum += (d.today_price_per_jin + (d.process_fee || 0)) * q; else mk++; }
+  return { n, sum: Math.round(sum * 100) / 100, mk };
+}
+function updateBar() {
+  const c = cartCalc();
+  $('#sum').innerHTML = c.n ? `¥${money(c.sum)}<small>已选${c.n}份${c.mk ? ` · 另有${c.mk}道时价菜称重后计价` : ''}</small>` : `<small style="font-size:1rem">还没点菜，点 + 号选菜</small>`;
+  $('#go').disabled = !c.n;
+}
+function openCart() {
+  const ids = Object.keys(cart); if (!ids.length) return;
+  const c = cartCalc(); const add = !!(bill && bill.orders.some(o => o.status !== 'cancelled'));
+  const m = sheet(`<h2>${add ? '加菜' : '确认下单'} · ${tl(T)}</h2>
+   ${ids.map(id => { const d = dish(id), it = cart[id]; return `<div class="citem" data-id="${esc(id)}"><div class="grow"><div class="nm">${esc(d.name)}</div>
+     <div class="mut" style="font-size:.9rem">${d.is_market_price ? (d.today_price_per_jin != null ? `¥${money(d.today_price_per_jin)}/${esc(d.unit)}${d.process_fee ? ' +加工费¥' + money(d.process_fee) : ''}，称重计价` : '时价，以称重为准') : `¥${money(d.price)} × ${it.qty} = ¥${money(d.price * it.qty)}`}</div>
+     <button class="notebtn" data-a="note">${it.note ? '备注：' + esc(it.note) : '+ 备注'}</button></div>
+     <div class="qty"><button class="minus" data-a="sub">−</button><b>${it.qty}</b><button data-a="add">+</button></div></div>`; }).join('')}
+   <div style="margin:14px 0 6px;font-weight:800">${add ? '' : '几位用餐？'}</div>
+   ${add ? '' : `<div class="people">${Array.from({ length: 12 }, (_, i) => `<button data-p="${i + 1}" class="${people === i + 1 ? 'on' : ''}">${i + 1}</button>`).join('')}</div>`}
+   <div style="margin:14px 0 6px;font-weight:800">整单备注（可不填）</div>
+   <input id="on" maxlength="100" value="${esc(onote)}" placeholder="如：先上烧烤、有小孩">
+   <div style="margin:16px 0 8px;font-size:1.3rem;font-weight:900">合计：<span class="red">¥${money(c.sum)}</span>${c.mk ? `<span class="mut" style="font-size:.95rem;font-weight:400"> + ${c.mk}道时价菜（称重后计价）</span>` : ''}</div>
+   <p class="mut" style="margin:4px 0 12px">提交后厨房马上做。结账请到收银台扫码付款。</p>
+   <div class="row"><button class="btn gray" id="back">再看看</button><button class="btn grow" id="sub" style="font-size:1.3rem">${add ? '提交加菜' : '提交订单'}</button></div>`);
+  m.onclick = async e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.p) { people = +b.dataset.p; saveCart(); $$('.people button', m).forEach(x => x.classList.toggle('on', x === b)); return; }
+    const row = b.closest('.citem');
+    if (row) { const id = row.dataset.id; onote = $('#on', m).value; m.close();
+      if (b.dataset.a === 'note') { editNote(id).reopen = true; return; }
+      setQty(id, cart[id].qty + (b.dataset.a === 'add' ? 1 : -1)); if (Object.keys(cart).length) openCart(); return; }
+    if (b.id === 'back') { onote = $('#on', m).value; saveCart(); m.close(); }
+    if (b.id === 'sub') { onote = $('#on', m).value; b.disabled = true; b.textContent = '提交中…';
+      try {
+        const j = await api('/api/order', { body: { table: T, people: people || undefined, note: onote, items: ids.map(id => ({ id, qty: cart[id].qty, note: cart[id].note })) } });
+        cart = {}; onote = ''; saveCart(); m.close(); bill = j.bill; $$('.dish').forEach(el => el.outerHTML = dishHtml(dish(el.dataset.id))); updateBar(); done(j.order);
+      } catch (err) { toast(err.message, 3000); b.disabled = false; b.textContent = '重新提交'; M = await api('/api/menu'); }
+    }
+  };
+}
+function itemLine(it) {
+  let p = it.market ? (it.amount != null ? `${it.weight != null ? it.weight + it.unit + ' ' : ''}¥${money(it.amount)}` : '<span class="ora">待称重</span>') : `¥${money(it.price * it.qty)}`;
+  return `<div class="row" style="padding:3px 0"><span class="grow">${esc(it.name)} × ${it.qty}${it.note ? ` <span class="dnote">(${esc(it.note)})</span>` : ''}</span><span>${p}</span></div>`;
+}
+function done(o) {
+  const m = sheet(`<div class="center"><div class="big-ok">✓</div><h2 style="margin:6px 0">${o.isAdd ? '加菜成功' : '下单成功'}</h2>
+   <div class="mut">订单号</div><div class="ono">${o.no}号</div><div class="mut" style="font-size:.85rem">${esc(o.id)} · ${tl(T)}</div></div>
+   <div class="card">${o.items.map(itemLine).join('')}<div class="row" style="margin-top:6px;font-weight:800"><span class="grow">本单</span><span class="red">¥${money(o.total)}${o.pendingItems ? '+时价' : ''}</span></div></div>
+   <p class="center" style="font-weight:800;color:#8d3b00;font-size:1.15rem">结账请到收银台扫码付款</p>
+   <div class="row"><button class="btn line grow" id="b1">本桌已点</button><button class="btn grow" id="b2">继续加菜</button></div>`);
+  $('#b1', m).onclick = () => { m.close(); showBill(); }; $('#b2', m).onclick = m.close;
+}
+async function refreshBill() { try { bill = (await api('/api/table/' + encodeURIComponent(T))).bill; } catch (e) {} }
+async function showBill() {
+  await refreshBill();
+  const os = bill ? bill.orders.filter(o => o.status !== 'cancelled') : [];
+  sheet(`<h2>${tl(T)} · 已点菜品</h2>${os.length ? os.map(o => `<div class="card"><div class="row" style="margin-bottom:4px"><b>${o.no}号单</b>${o.isAdd ? '<span class="badge b-add">加</span>' : ''}<span class="mut" style="font-size:.85rem">${new Date(o.createdAt).toTimeString().slice(0, 5)}</span><span class="chip st-${o.status_label}" style="margin-left:auto">${o.status_label}</span></div>${o.items.map(itemLine).join('')}</div>`).join('')
+   + `<div style="font-size:1.35rem;font-weight:900;margin:10px 0">合计 <span class="red">¥${money(bill.total)}</span>${bill.pendingItems ? `<span class="mut" style="font-size:.95rem;font-weight:400"> + ${bill.pendingItems}道待称重</span>` : ''}</div>`
+   : '<p class="mut">本桌还没有下单。</p>'}
+   <p style="font-weight:800;color:#8d3b00">结账请到收银台扫码付款</p><button class="btn gray" style="width:100%" onclick="closeSheets()">关闭</button>`);
+}
+function callWaiter() {
+  const m = sheet(`<h2 class="center">呼叫服务员 · ${tl(T)}</h2><div class="calls">${['加水', '催菜', '要称重', '买单'].map(x => `<button data-t="${x}">${x}</button>`).join('')}</div>
+   <button class="btn gray" style="width:100%;margin-top:14px" id="x">取消</button>`);
+  $('#x', m).onclick = m.close;
+  $$('[data-t]', m).forEach(b => b.onclick = async () => { try { await api('/api/call', { body: { table: T, type: b.dataset.t } }); m.close(); toast(`已通知服务员：${b.dataset.t}\n马上就来`, 2500); } catch (e) { toast(e.message); } });
+}
+init().catch(e => { $('#app').innerHTML = `<p class="center" style="margin-top:30vh">网络不好，<a href="">点这里重试</a><br><small class="mut">${esc(e.message)}</small></p>`; });
+setInterval(async () => { if (!M || $('.mask')) return; try { const n = await api('/api/menu'); const sig = x => JSON.stringify(x.dishes.map(d => [d.id, d.sold_out, d.available_now, d.today_price_per_jin, d.process_fee, d.price, d.name])) + x.categories;
+  if (sig(n) !== sig(M)) { const y = scrollY; M = n; setRooms(M.rooms); for (const id in cart) { const d = dish(id); if (!d || !canOrder(d)) delete cart[id]; } if (M.tables.includes(T)) { render(); scrollTo(0, y); } } } catch (e) {} }, 30000);
+</script></body></html>

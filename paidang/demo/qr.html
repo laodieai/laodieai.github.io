@@ -1,0 +1,26 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>桌卡打印</title><link rel="stylesheet" href="common.css">
+<style>
+@page{size:105mm 148mm;margin:0}
+.bar{padding:10px 12px;background:#fff;border-bottom:2px solid var(--line);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.cards{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;padding:12px}
+.qc{width:105mm;height:148mm;background:#fff;border:3px solid var(--red);border-radius:6mm;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:7mm 6mm 6mm;overflow:hidden;position:relative}
+.qc .st{font-size:8mm;font-weight:900;color:var(--red);letter-spacing:1mm}
+.qc .sc{font-size:15mm;font-weight:900;color:#fff;background:linear-gradient(135deg,var(--red),var(--ora));width:100%;text-align:center;border-radius:4mm;line-height:1.35;letter-spacing:2mm}
+.qc .qrw{width:62mm;height:62mm}.qc .qrw svg{width:100%;height:100%}
+.qc .tb{font-size:13mm;font-weight:900;line-height:1}.qc .tb small{font-size:7mm}
+.qc .ft{font-size:3.6mm;color:#6d4c41;text-align:center}
+@media print{.bar{display:none}body{background:#fff}.cards{padding:0;gap:0;display:block}.qc{border-width:2px;page-break-after:always;break-after:page;margin:0;border-radius:0}}
+@media screen and (max-width:440px){.cards{zoom:.88}}
+</style></head><body>
+<div id="app"></div>
+<script src="seed.js"></script><script src="qrcode.min.js"></script><script src="mock.js"></script><script src="common.js"></script>
+<script>
+requireLogin('桌卡打印', async () => {
+  const j = await api('/api/admin/qrcards');
+  document.body.innerHTML = `<div class="bar"><b>共${j.cards.length}张A6桌卡</b><span class="mut" style="font-size:.85rem">网址：${esc(j.base)}</span><button class="btn" onclick="print()" style="margin-left:auto">打印</button><a href="admin.html" class="btn gray" style="text-decoration:none">返回后台</a></div>
+  <div class="cards">${j.cards.map(c => `<div class="qc"><div class="st">${esc(j.storeName)}</div><div class="sc">扫码点菜</div><div class="qrw">${c.svg}</div>
+   <div class="tb">${c.room ? `<small>包厢</small> ${esc(c.table)}` : `${esc(c.table)} <small>号桌</small>`}</div><div class="ft">微信/支付宝扫一扫即可点菜 · 不用注册<br>结账请到收银台扫码付款</div></div>`).join('')}</div>`;
+});
+</script></body></html>
