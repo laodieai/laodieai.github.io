@@ -1,0 +1,178 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>后厨/收银</title><meta name="theme-color" content="#c62828">
+<link rel="stylesheet" href="common.css">
+<style>
+.kh{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.kh .t{font-size:1.25rem;font-weight:900}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.stats div{background:rgba(255,255,255,.18);border-radius:10px;padding:6px 8px;text-align:center;font-size:.85rem}
+.stats b{display:block;font-size:1.25rem}
+.tools{display:flex;gap:8px;flex-wrap:wrap;padding:10px 12px;background:#fff;border-bottom:1px solid var(--line)}
+.tools .btn{flex:1;min-width:120px}
+#calls .call{background:var(--red);color:#fff;border-radius:14px;padding:12px 14px;margin:10px 0;display:flex;align-items:center;gap:10px;font-size:1.35rem;font-weight:900;animation:flash 1s infinite}
+#calls .call .btn{margin-left:auto;background:#fff;color:var(--red)}
+@keyframes flash{0%,100%{box-shadow:0 0 0 0 rgba(229,57,53,.9)}50%{box-shadow:0 0 0 10px rgba(229,57,53,0);filter:brightness(1.25)}}
+.order{background:#fff;border-radius:14px;margin:10px 0;border:2px solid var(--line);overflow:hidden}
+.order.new{border-color:var(--red);animation:flash 1s infinite}
+.order .oh{display:flex;gap:8px;align-items:center;padding:8px 12px;background:#fbeee3}
+.order .tb{font-size:1.7rem;font-weight:900;color:var(--red);white-space:nowrap}
+.order .ob{padding:6px 12px}
+.order .it{display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px dashed var(--line);font-size:1.15rem}
+.order .it .q{font-weight:900;min-width:44px;color:var(--red)}
+.order .it .nt{color:var(--ora);font-weight:700;font-size:1rem}
+.order .of{display:flex;gap:8px;padding:8px 12px 12px;flex-wrap:wrap}
+.order .of .btn{flex:1}
+.tbl{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.tbl .card{margin:0}
+.tbl .tn{font-size:1.6rem;font-weight:900;color:var(--red)}
+.pay{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pay button{padding:16px 0;font-size:1.25rem;font-weight:900;background:#f3ebe4;border:3px solid transparent}
+.pay button.on{border-color:var(--red);background:#ffe9e0;color:var(--red)}
+.quick{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.empty{text-align:center;color:var(--mut);padding:30px 0}
+</style></head><body>
+<div id="app"></div>
+<script src="seed.js"></script><script src="qrcode.min.js"></script><script src="mock.js"></script><script src="common.js"></script>
+<script>
+let S = null, tab = localStorage.getItem('pd_ktab') || 'cook', known = null, knownCalls = null, newIds = new Set(), soundOn = false;
+requireLogin('老爹排档 · 后厨/收银', start);
+function start() {
+  document.body.innerHTML = `<div class="topbar"><div class="kh"><span class="t" id="store">后厨/收银</span><span id="live" class="chip" style="background:rgba(255,255,255,.25)">连接中</span>
+   <button class="btn sm gray" id="snd" style="margin-left:auto">🔇 点我开声音</button></div><div class="stats" id="stats"></div></div>
+  <div class="tools"><button class="btn ora sm" id="staff">代客下单</button><button class="btn blue sm" id="exp">导出今日订单</button><a class="btn gray sm" href="admin.html" style="text-decoration:none;text-align:center;line-height:28px">后台</a></div>
+  <div class="tabs"><button class="tab" data-t="cook">出菜</button><button class="tab" data-t="tables">桌台/结账</button><button class="tab" data-t="paid">今日已结</button></div>
+  <div class="wrap"><div id="calls"></div><div id="main"></div></div>`;
+  $('#snd').onclick = () => { unlockAudio(); soundOn = true; $('#snd').textContent = '🔊 声音已开'; $('#snd').className = 'btn sm ok'; beep([[988, .12]]); };
+  document.addEventListener('click', unlockAudio, { once: true });
+  $$('.tabs .tab').forEach(b => b.onclick = () => { tab = b.dataset.t; localStorage.setItem('pd_ktab', tab); render(); });
+  $('#exp').onclick = () => { mockExport(); };
+  $('#staff').onclick = staffOrder;
+  $('#main').onclick = onMain; $('#calls').onclick = onCalls;
+  connect(); load(); setInterval(load, 8000); setInterval(() => { if (S) render(); }, 30000);
+}
+function connect() {
+  const es = new EventSource('/api/stream?token=' + encodeURIComponent(token()));
+  es.onopen = () => { $('#live').textContent = '● 实时'; };
+  es.onerror = () => { $('#live').textContent = '轮询中'; };
+  ['order', 'call', 'update', 'menu'].forEach(ev => es.addEventListener(ev, () => load()));
+}
+let loading = false, again = false;
+async function load() {
+  if (loading) { again = true; return; } loading = true;
+  try {
+    S = await api('/api/kitchen/state'); setRooms(S.rooms);
+    const ids = new Set(S.orders.map(o => o.id)), cids = new Set(S.calls.map(c => c.id));
+    if (known) { const fresh = S.orders.filter(o => !known.has(o.id)); if (fresh.length) { fresh.forEach(o => newIds.add(o.id)); alertNew('order'); } }
+    if (knownCalls) { if (S.calls.some(c => !knownCalls.has(c.id))) alertNew('call'); }
+    known = ids; knownCalls = cids; render();
+  } catch (e) { console.warn(e); } finally { loading = false; if (again) { again = false; load(); } }
+}
+function alertNew(kind) {
+  if (soundOn) { if (kind === 'call') { beep(SND_CALL); setTimeout(() => beep(SND_CALL), 2200); } else { beep(SND_ORDER); setTimeout(() => beep(SND_ORDER), 1200); } }
+  if (navigator.vibrate) navigator.vibrate(kind === 'call' ? [400, 150, 400, 150, 400] : [200, 100, 200]);
+  document.title = (kind === 'call' ? '【呼叫】' : '【新单】') + '后厨/收银';
+}
+const ago = ts => { const m = Math.floor((Date.now() - ts) / 60000); return m < 1 ? '刚刚' : m < 60 ? m + '分钟前' : Math.floor(m / 60) + '小时前'; };
+const hm = ts => new Date(ts).toTimeString().slice(0, 5);
+function render() {
+  $('#store').textContent = S.storeName + ' · 后厨/收银';
+  const st = S.stats, bm = st.byMethod;
+  $('#stats').innerHTML = `<div>今日订单<b>${st.orderCount}</b></div><div>今日已收<b>¥${money(st.received)}</b></div><div>未结账 ${st.openCount}桌<b>¥${money(st.openTotal)}</b></div>
+   <div style="grid-column:span 3">微信 ¥${money(bm['微信'] || 0)} · 支付宝 ¥${money(bm['支付宝'] || 0)} · 现金 ¥${money(bm['现金'] || 0)} · 已结${st.paidBills}桌</div>`;
+  $$('.tabs .tab').forEach(b => b.classList.toggle('on', b.dataset.t === tab));
+  $('#calls').innerHTML = S.calls.map(c => `<div class="call"><span>${tl(c.table)} 呼叫：${esc(c.type)}</span><small style="font-size:.85rem;font-weight:400">${hm(c.at)}</small><button class="btn sm" data-c="${c.id}">知道了</button></div>`).join('');
+  const m = $('#main');
+  if (tab === 'cook') {
+    const os = S.orders.filter(o => o.status === 'pending' || o.status === 'done').sort((a, b) => a.createdAt - b.createdAt);
+    const served = S.orders.filter(o => o.status === 'served').sort((a, b) => b.servedAt - a.servedAt).slice(0, 5);
+    m.innerHTML = (os.length ? os.map(orderCard).join('') : '<div class="empty">暂时没有要做的菜 👍</div>') + (served.length ? `<h3 class="mut">最近已上</h3>${served.map(orderCard).join('')}` : '');
+  } else if (tab === 'tables') {
+    m.innerHTML = S.openBills.length ? `<div class="tbl">${S.openBills.sort((a, b) => S.tables.indexOf(a.table) - S.tables.indexOf(b.table)).map(b => `<div class="card"><div class="tn">${tl(b.table)}</div>
+      <div class="mut">${b.people ? b.people + '人 · ' : ''}${b.orders.filter(o => o.status !== 'cancelled').length}单 · ${hm(b.openedAt)}开台</div>
+      <div style="font-size:1.5rem;font-weight:900;margin:4px 0">¥${money(b.total)}</div>${b.pendingItems ? `<div class="chip st-待称重">${b.pendingItems}道待称重</div>` : ''}
+      <button class="btn" style="width:100%;margin-top:8px" data-pay="${b.id}">结账</button><button class="btn line sm" style="width:100%;margin-top:6px" data-detail="${b.id}">明细</button></div>`).join('')}</div>` : '<div class="empty">现在没有未结账的桌</div>';
+  } else {
+    m.innerHTML = S.paidBills.length ? S.paidBills.map(b => `<div class="card"><div class="row"><b style="font-size:1.3rem">${tl(b.table)}</b><span class="mut">${hm(b.paidAt)} 结账</span><span style="margin-left:auto" class="chip st-已上">${esc(b.payMethod)}</span></div>
+      <div>应收 ¥${money(b.due)} · <b>实收 ¥${money(b.paidAmount)}</b>${b.payNote ? ` · <span class="ora">${esc(b.payNote)}</span>` : ''}</div>
+      <div class="mut" style="font-size:.9rem">${b.orders.filter(o => o.status !== 'cancelled').map(o => o.items.map(i => i.name + '×' + i.qty).join('、')).join('；')}</div>
+      <button class="btn gray sm" data-reopen="${b.id}" style="margin-top:6px">撤销结账</button></div>`).join('') : '<div class="empty">今天还没有结账记录</div>';
+  }
+}
+function orderCard(o) {
+  const lbl = o.status_label, isNew = newIds.has(o.id);
+  return `<div class="order ${isNew ? 'new' : ''}" data-o="${o.id}"><div class="oh"><span class="tb">${tl(o.table)}</span>${o.isAdd ? '<span class="badge b-add">加</span>' : ''}${o.byStaff ? '<span class="badge" style="background:#4e342e;color:#fff">代客</span>' : ''}
+   <span class="mut" style="font-size:.9rem">${o.no}号 · ${hm(o.createdAt)} · ${ago(o.createdAt)}${o.people ? ' · ' + o.people + '人' : ''}</span><span class="chip st-${lbl}" style="margin-left:auto">${lbl}</span></div>
+   <div class="ob">${o.items.map((it, i) => `<div class="it"><span class="q">×${it.qty}</span><span class="grow"><b>${esc(it.name)}</b>${it.note ? ` <span class="nt">【${esc(it.note)}】</span>` : ''}
+     ${it.market ? (it.amount != null ? `<br><small class="mut">${it.weight != null ? it.weight + it.unit + ' · ' : ''}¥${money(it.amount)}</small>` : `<br><small class="ora">时价${it.unit_price != null ? ' ¥' + it.unit_price + '/' + esc(it.unit) : ''}${it.fee ? ' +加工费¥' + it.fee : ''}</small>`) : ''}</span>
+     ${it.market && o.status !== 'cancelled' ? `<button class="btn ${it.amount == null ? 'ora' : 'gray'} sm" data-weigh="${i}">${it.amount == null ? (/斤|两|公斤/.test(it.unit) ? '称重' : '定价') : '改'}</button>` : ''}</div>`).join('')}
+    ${o.note ? `<div class="nt" style="color:var(--ora);font-weight:700;padding-top:6px">整单备注：${esc(o.note)}</div>` : ''}</div>
+   <div class="of">${o.status === 'pending' ? `<button class="btn" data-st="done" ${o.pendingItems ? 'disabled' : ''}>${o.pendingItems ? '先称重' : '已做'}</button>` : ''}
+    ${o.status === 'done' ? `<button class="btn ok" data-st="served">已上</button><button class="btn gray sm" data-st="pending">退回</button>` : ''}
+    ${o.status === 'served' ? `<button class="btn gray sm" data-st="done">撤回</button>` : ''}
+    ${o.status === 'pending' ? `<button class="btn gray sm" data-st="cancelled" style="flex:none">取消</button>` : ''}<span class="mut" style="align-self:center">¥${money(o.total)}${o.pendingItems ? '+时价' : ''}</span></div></div>`;
+}
+async function onMain(e) {
+  const b = e.target.closest('button'); if (!b) return; const card = b.closest('.order'); const oid = card && card.dataset.o;
+  if (oid) newIds.delete(oid);
+  try {
+    if (b.dataset.st) { if (b.dataset.st === 'cancelled' && !confirm('确定取消这一单？')) return; await api(`/api/order/${oid}/status`, { body: { status: b.dataset.st } }); load(); }
+    else if (b.dataset.weigh) weigh(S.orders.find(o => o.id === oid), +b.dataset.weigh);
+    else if (b.dataset.pay) checkout(S.openBills.find(x => x.id === b.dataset.pay));
+    else if (b.dataset.detail) detail(S.openBills.find(x => x.id === b.dataset.detail));
+    else if (b.dataset.reopen) { if (confirm('撤销这次结账？')) { await api(`/api/bill/${b.dataset.reopen}/reopen`, { body: {} }); load(); } }
+    else if (card) render();
+  } catch (err) { toast(err.message, 2500); }
+  document.title = '后厨/收银';
+}
+async function onCalls(e) { const b = e.target.closest('[data-c]'); if (!b) return; await api(`/api/call/${b.dataset.c}/handle`, { body: {} }); document.title = '后厨/收银'; load(); }
+function weigh(o, i) {
+  const it = o.items[i], isW = /斤|两|公斤/.test(it.unit);
+  const m = sheet(`<h2>${tl(o.table)} · ${esc(it.name)} ×${it.qty}</h2>
+   <p class="mut">今日价：${it.unit_price != null ? '¥' + it.unit_price + '/' + esc(it.unit) : '未设置'}${it.fee ? '，加工费¥' + it.fee : ''}</p>
+   ${isW ? `<label>重量（${esc(it.unit)}）<input id="w" type="number" inputmode="decimal" step="0.01" value="${it.weight ?? ''}"></label>` : ''}
+   <label style="display:block;margin-top:10px">单价（元/${esc(it.unit)}）<input id="u" type="number" inputmode="decimal" value="${it.unit_price ?? ''}"></label>
+   <label style="display:block;margin-top:10px">加工费（元）<input id="f" type="number" inputmode="decimal" value="${it.fee ?? ''}"></label>
+   <label style="display:block;margin-top:10px"><b>金额（元）</b><input id="a" type="number" inputmode="decimal" value="${it.amount ?? ''}" style="font-size:1.6rem;font-weight:900"></label>
+   <p class="mut" style="font-size:.9rem">金额自动算＝${isW ? '重量×单价' : '单价×份数'}＋加工费，可手动改。</p>
+   <div class="row"><button class="btn gray grow" id="c">取消</button><button class="btn grow" id="s">确定</button></div>`);
+  const calc = () => { const w = isW ? +$('#w', m).value : it.qty, u = +$('#u', m).value, f = +$('#f', m).value || 0; if (w && u) $('#a', m).value = Math.round((w * u + f) * 100) / 100; };
+  ['#w', '#u', '#f'].forEach(s => { const x = $(s, m); if (x) x.oninput = calc; });
+  $('#c', m).onclick = m.close;
+  $('#s', m).onclick = async () => { try { await api(`/api/order/${o.id}/item/${i}/weigh`, { body: { weight: isW ? $('#w', m).value : null, amount: $('#a', m).value } }); m.close(); load(); } catch (e) { toast(e.message); } };
+}
+function detail(b) {
+  sheet(`<h2>${tl(b.table)} 明细</h2>${b.orders.filter(o => o.status !== 'cancelled').map(o => `<div class="card"><b>${o.no}号单</b>${o.isAdd ? '<span class="badge b-add">加</span>' : ''} <span class="chip st-${o.status_label}">${o.status_label}</span>
+   ${o.items.map(it => `<div class="row"><span class="grow">${esc(it.name)}×${it.qty}${it.note ? ' (' + esc(it.note) + ')' : ''}</span><span>${it.market ? (it.amount != null ? '¥' + money(it.amount) : '<span class="ora">待称重</span>') : '¥' + money(it.price * it.qty)}</span></div>`).join('')}</div>`).join('')}
+   <div style="font-size:1.4rem;font-weight:900">合计 ¥${money(b.total)}</div><button class="btn gray" style="width:100%;margin-top:10px" onclick="closeSheets()">关闭</button>`);
+}
+function checkout(b) {
+  let method = '', due = b.total;
+  const m = sheet(`<h2>${tl(b.table)} 结账</h2>
+   ${b.pendingItems ? `<p class="chip st-待称重">注意：还有${b.pendingItems}道时价菜没称重，金额未算入</p>` : ''}
+   <div style="font-size:1.1rem">应收</div><div style="font-size:2.4rem;font-weight:900;color:var(--red)">¥${money(due)}</div>
+   <div style="margin:10px 0 6px;font-weight:800">付款方式</div><div class="pay">${['微信', '支付宝', '现金'].map(x => `<button data-m="${x}">${x}</button>`).join('')}</div>
+   <div style="margin:12px 0 6px;font-weight:800">实收金额</div><input id="paid" type="number" inputmode="decimal" value="${due}" style="font-size:1.8rem;font-weight:900">
+   <div class="quick"><button class="btn gray sm" data-q="jiao">抹零(去角)</button><button class="btn gray sm" data-q="ten">抹到10元</button><button class="btn gray sm" data-q="0.95">95折</button><button class="btn gray sm" data-q="0.9">9折</button><button class="btn gray sm" data-q="0.88">88折</button><button class="btn gray sm" data-q="reset">原价</button></div>
+   <input id="pn" placeholder="备注（如：老顾客抹零、9折）" maxlength="60">
+   <div class="row" style="margin-top:14px"><button class="btn gray" id="c">取消</button><button class="btn grow" id="s" style="font-size:1.3rem">确认收款</button></div>`);
+  const notes = { jiao: '抹零', ten: '抹零到10元', '0.95': '95折', '0.9': '9折', '0.88': '88折' };
+  $$('[data-m]', m).forEach(x => x.onclick = () => { method = x.dataset.m; $$('[data-m]', m).forEach(y => y.classList.toggle('on', y === x)); });
+  $$('[data-q]', m).forEach(x => x.onclick = () => { const q = x.dataset.q; let v = due;
+    if (q === 'jiao') v = Math.floor(due); else if (q === 'ten') v = Math.floor(due / 10) * 10; else if (q !== 'reset') v = Math.round(due * +q * 100) / 100;
+    $('#paid', m).value = v; $('#pn', m).value = notes[q] || ''; });
+  $('#c', m).onclick = m.close;
+  $('#s', m).onclick = async () => {
+    if (!method) return toast('请选付款方式');
+    const body = { method, paid: $('#paid', m).value, note: $('#pn', m).value };
+    try { await api(`/api/bill/${b.id}/checkout`, { body }); }
+    catch (e) { if (/待称重|没称重/.test(e.message) && confirm(e.message + '，仍然结账？')) { try { await api(`/api/bill/${b.id}/checkout`, { body: { ...body, force: true } }); } catch (e2) { return toast(e2.message); } } else return toast(e.message); }
+    m.close(); toast(`${isRoom(b.table) ? '包厢 ' + b.table : b.table + '桌'} 已结账 ¥${body.paid}（${method}）`); load();
+  };
+}
+function staffOrder() {
+  const open = new Set(S.openBills.map(b => b.table));
+  const m = sheet(`<h2>代客下单 · 选桌号</h2><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">${S.tables.map(t => `<a class="btn ${open.has(t) ? 'ora' : 'gray'}" style="text-decoration:none;text-align:center;font-size:1.25rem" href="order.html?staff=1&t=${encodeURIComponent(t)}">${isRoom(t) ? '<small>包厢</small> ' : ''}${esc(t)}</a>`).join('')}</div>
+   <p class="mut">橙色＝已开台（下单即加菜）</p><button class="btn gray" style="width:100%" onclick="closeSheets()">关闭</button>`);
+}
+</script></body></html>
