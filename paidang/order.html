@@ -1,9 +1,9 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>扫码点菜</title><meta name="theme-color" content="#c62828">
+<title>笑笑酒馆 · 扫码点菜</title><meta name="theme-color" content="#c62828">
 <style>body{margin:0;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#fff8f0;color:#222;text-align:center}
 .top{background:#c62828;color:#fff;padding:18px 10px;font-size:1.5rem;font-weight:900}#msg{padding:40px 20px;font-size:1.2rem;line-height:1.7}
 .big{font-size:1.6rem;font-weight:900;color:#c62828}.btn{display:inline-block;margin-top:18px;padding:12px 28px;border-radius:10px;background:#c62828;color:#fff;border:0;font-size:1.1rem;text-decoration:none}
 .spin{width:36px;height:36px;border:4px solid #f3c;border-color:#c62828 transparent #c62828 transparent;border-radius:50%;margin:0 auto 14px;animation:s 1s linear infinite}@keyframes s{to{transform:rotate(360deg)}}</style></head>
-<body><div class="top">老爹排档 · 扫码点菜</div><div id="msg"><div class="spin"></div>正在打开，请稍等…</div>
+<body><div class="top">笑笑酒馆 · 扫码点菜</div><div id="msg"><div class="spin"></div>正在打开，请稍等…</div>
 <script src="go.js"></script><script>var t=new URLSearchParams(location.search).get('t')||'';goLive(t?'/?t='+encodeURIComponent(t):'/','<div class=big>点单系统暂时连不上，请找服务员点菜</div><div>不好意思，给您添麻烦了 🙏</div><button class=btn onclick=location.reload()>再试一次</button>');</script></body></html>
