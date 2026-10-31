@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"/>
+<meta name="format-detection" content="telephone=no"/>
+<title>老爹牌远程点单系统</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#c41e24;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans SC",sans-serif;min-height:100vh;padding:16px 14px 28px}
+.wrap{max-width:480px;margin:0 auto}
+h1{font-size:22px;text-align:center;margin:8px 0 4px;letter-spacing:1px}
+.sub{text-align:center;opacity:.9;font-size:14px;margin-bottom:14px}
+video{width:100%;border-radius:14px;background:#000;display:block;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.tip{margin-top:14px;background:rgba(255,255,255,.12);border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.6}
+.tip b{color:#f4be46}
+a.dl{display:block;margin-top:12px;text-align:center;background:#f4be46;color:#5a1808;font-weight:700;padding:12px;border-radius:12px;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>老爹牌远程点单系统</h1>
+  <p class="sub">远程点单 · 到店就吃</p>
+  <video id="v" controls playsinline webkit-playsinline preload="metadata" poster="" src="./dadie-remote.mp4">
+    您的浏览器不支持视频播放
+  </video>
+  <div class="tip">
+    <b>播放提示：</b>点一下播放按钮即可观看。若一直转圈，请换用 Safari 打开本页，或点下方按钮下载后再看。
+  </div>
+  <a class="dl" href="./dadie-remote.mp4" download="老爹牌远程点单系统_讲解视频.mp4">下载视频到手机</a>
+</div>
+<script>
+var v=document.getElementById('v');
+v.addEventListener('error',function(){
+  document.querySelector('.tip').innerHTML='<b>加载失败：</b>请点下方「下载视频」保存到相册，再用系统播放器打开。';
+});
+</script>
+</body>
+</html>
