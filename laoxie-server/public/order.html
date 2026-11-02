@@ -25,6 +25,7 @@ input{padding:9px;border:1px solid #ccc;border-radius:8px;font-size:15px}
 <div class="cart"><span id="cartText">未点菜</span><button class="btn" onclick="submit()">提交订单</button></div>
 <script>
 let menu=[],settings={},cart={},mode='堂食',seat='',cat='拌面类';
+let _t=new URLSearchParams(location.search).get('t'); if(_t&&/^\d+$/.test(_t)) seat=_t;
 async function j(u,o){let r=await fetch(u,{method:o?'POST':'GET',headers:{'Content-Type':'application/json'},body:o?JSON.stringify(o):undefined});return r.json();}
 async function load(){menu=await j('/api/menu');settings=await j('/api/settings');document.getElementById('shop').textContent=settings.shop_name||'老谢手工面';document.getElementById('phone').textContent='外送电话：'+(settings.phone||'');renderModes();renderSeats();renderCats();renderMenu();renderMy();}
 function renderModes(){document.getElementById('modes').innerHTML=['堂食','打包','外卖'].map(m=>`<span class="pill ${m===mode?'on':''}" onclick="mode='${m}';document.getElementById('seatBox').style.display=(m==='堂食'?'block':'none');document.getElementById('addrBox').style.display=(m==='外卖'?'block':'none');renderModes();renderSeats()">${m}</span>`).join('');}

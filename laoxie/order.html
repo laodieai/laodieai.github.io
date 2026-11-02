@@ -1,0 +1,10 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>老谢手工面 · 扫码点面</title>
+<style>body{margin:0;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#fbf4ec;color:#2a1410;text-align:center}
+.xh{background:#b3201b;color:#fff;padding:30px 20px 34px}.xh b{display:block;font-size:32px;letter-spacing:5px}
+#msg{padding:40px 20px;font-size:17px;line-height:1.7;color:#8a7266}.big{font-size:20px;font-weight:900;color:#b3201b}
+.btn{display:inline-block;margin-top:18px;padding:12px 28px;border-radius:24px;background:#b3201b;color:#fff;border:0;font-size:17px}
+.spin{width:34px;height:34px;border:4px solid #b3201b;border-color:#b3201b transparent #b3201b transparent;border-radius:50%;margin:0 auto 14px;animation:s 1s linear infinite}@keyframes s{to{transform:rotate(360deg)}}</style></head>
+<body><div class="xh"><b>老谢手工面</b><small>远程点单，到店就吃</small></div><div id="msg"><div class="spin"></div>正在打开，请稍等…</div>
+<script src="go.js?v=1"></script><script>var qs=new URLSearchParams(location.search),t=(qs.get('t')||'').trim();goLive(t?'/order.html?t='+encodeURIComponent(t):'/order.html','<div class=big>系统暂时连不上</div><div>请稍后再试，或直接打电话给店里：136-0677-0650</div><button class=btn onclick=location.reload()>再试一次</button>');</script></body></html>
