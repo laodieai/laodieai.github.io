@@ -1,0 +1,41 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>老谢手工面 · 远程点单，到店就吃</title>
+<style>body{margin:0;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#fbf4ec;color:#2a1410}
+.h{background:#b3201b;color:#fff;padding:26px 16px;text-align:center}.h b{font-size:30px;letter-spacing:4px}
+.pill{display:inline-block;padding:8px 14px;margin:4px;border:1px solid #ccc;border-radius:18px;background:#fff}.pill.on{background:#b3201b;color:#fff;border-color:#b3201b}
+.item{display:flex;justify-content:space-between;background:#fff;border-radius:12px;padding:12px;margin:8px 14px}
+.item span{color:#b3201b;font-weight:700}.qty button{width:32px;height:32px;font-size:18px;border-radius:50%;border:1px solid #ccc;background:#fff}
+.cart{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #ddd;padding:10px 14px;display:flex;justify-content:space-between}
+.btn{background:#b3201b;color:#fff;border:0;border-radius:20px;padding:12px 22px;font-size:16px}
+.btn2{background:#fff;color:#b3201b;border:1px solid #b3201b;border-radius:18px;padding:8px 14px;margin:4px}
+.card{background:#fff;border-radius:12px;padding:14px;margin:10px 14px}.note{color:#8a7266;font-size:13px;line-height:1.6;padding:0 14px}
+input{padding:9px;border:1px solid #ccc;border-radius:8px;font-size:15px}
+.qrbox{border:2px dashed #b3201b;border-radius:12px;padding:20px;text-align:center;color:#b3201b}.qrbox img{max-width:220px;width:100%}
+</style></head><body>
+<div class="h"><b id="shop">老谢手工面</b><div>远程点单，到店就吃 · 健康好汤水！</div><div id="phone"></div></div>
+<div style="padding:14px"><b>1. 用餐方式</b><div id="modes"></div>
+<div id="seatBox"><p><b>2. 选座位 / 人数 / 到店时间</b></p><div id="seats"></div>
+<p>人数：<input id="people" type="number" min="1" value="1" style="width:70px"> 人　到店时间：<input id="arrive" type="time"></p></div>
+<div id="addrBox" style="display:none"><p><b>2. 配送地址 / 电话</b></p><p><input id="addr" placeholder="配送地址" style="width:90%"> <input id="cphone" placeholder="电话" style="width:90%;margin-top:6px"></p></div>
+<p><b>3. 点菜（价格按店内价目表）</b></p><div id="cats"></div></div>
+<div id="menu"></div>
+<p class="note">打包 / 外卖：餐盒按店内告示加 1 元。钱不走平台，付到老板自己的支付宝 / 微信收款码，老板确认收款后才做面。</p>
+<h3 style="padding:0 14px">我的订单</h3><div id="my"></div>
+<div class="cart"><span id="cartText">未点菜</span><button class="btn" onclick="submit()">提交订单</button></div>
+<script>
+let menu=[],settings={},cart={},mode='堂食',seat='',cat='拌面类';
+async function j(u,o){let r=await fetch(u,{method:o?'POST':'GET',headers:{'Content-Type':'application/json'},body:o?JSON.stringify(o):undefined});return r.json();}
+async function load(){menu=await j('/api/menu');settings=await j('/api/settings');document.getElementById('shop').textContent=settings.shop_name||'老谢手工面';document.getElementById('phone').textContent='外送电话：'+(settings.phone||'');renderModes();renderSeats();renderCats();renderMenu();renderMy();}
+function renderModes(){document.getElementById('modes').innerHTML=['堂食','打包','外卖'].map(m=>`<span class="pill ${m===mode?'on':''}" onclick="mode='${m}';document.getElementById('seatBox').style.display=(m==='堂食'?'block':'none');document.getElementById('addrBox').style.display=(m==='外卖'?'block':'none');renderModes();renderSeats()">${m}</span>`).join('');}
+function renderSeats(){let h='';for(let i=1;i<=(settings.seats||10);i++)h+=`<span class="pill ${seat==i?'on':''}" onclick="seat=${i};renderSeats()">${i}号桌</span>`;document.getElementById('seats').innerHTML=h;}
+function renderCats(){let cs=[...new Set(menu.map(x=>x.category))];document.getElementById('cats').innerHTML=cs.map(c=>`<span class="pill ${c===cat?'on':''}" onclick="cat='${c}';renderMenu();renderCats()">${c}</span>`).join('');}
+function renderMenu(){let sold=new Set(settings.soldout||[]);document.getElementById('menu').innerHTML=menu.filter(x=>x.category===cat).map(x=>{let s=sold.has(x.name);return `<div class="item"><div><b>${x.name}</b><br><span>${x.price}元${x.unit}</span>${s?' <b style="color:#999">售罄</b>':''}</div><div class="qty">${s?'':`<button onclick="chg('${x.name}',-1)">−</button> <b>${cart[x.name]||0}</b> <button onclick="chg('${x.name}',1)">+</button>`}</div></div>`}).join('');renderCart();}
+function chg(n,d){cart[n]=(cart[n]||0)+d;if(cart[n]<=0)delete cart[n];renderMenu();}
+function renderCart(){let n=0,t=0;for(let k in cart){let m=menu.find(x=>x.name===k);n+=cart[k];t+=m.price*cart[k];}if(mode!=='堂食')t+=1;document.getElementById('cartText').textContent=n?`已选 ${n} 份 · 合计 ${t} 元${mode!=='堂食'?'（含餐盒1元）':''}`:'未点菜';}
+async function submit(){let items=Object.keys(cart).map(k=>({name:k,qty:cart[k]}));if(!items.length)return alert('先点菜');if(mode==='堂食'&&!seat)return alert('先选座位');let r=await j('/api/orders',{mode,seat,people:document.getElementById('people').value,arrive:document.getElementById('arrive').value,address:document.getElementById('addr').value,phone:document.getElementById('cphone').value,items,time:new Date().toLocaleString()});if(!r.ok)return alert('下单失败：'+(r.error||''));let mine=JSON.parse(localStorage.getItem('laoxie_my')||'[]');mine.push(r.order.no);localStorage.setItem('laoxie_my',JSON.stringify(mine));cart={};renderMenu();alert('已下单，取餐号 '+r.order.no+'。请在“我的订单”里按提示付到老板自己的收款码，再点“我已付款”。');renderMy();}
+async function renderMy(){let all=await j('/api/orders');let mine=new Set(JSON.parse(localStorage.getItem('laoxie_my')||'[]'));let list=all.filter(o=>mine.has(o.no)).reverse();document.getElementById('my').innerHTML=list.length?list.map(o=>`<div class="card"><b>取餐号 ${o.no} · ${o.status}</b><br>${o.time} ${o.mode} ${o.seat?o.seat+'号桌':''} ${o.people}人 到店：${o.arrive||'尽快'} ${o.address||''}<br>${o.items.map(i=>i.name+'×'+i.qty).join('，')}<br><b>合计 ${o.total} 元</b>${o.status==='待付款'?`<div class="qrbox">${settings.payment_qr?`<img src="${settings.payment_qr}">`:'老板收款码待老板在后台上传'}<br>付到老板自己的收款码，不走平台</div><button class="btn2" onclick="pay('${o.no}')">我已付款</button>`:''}${o.status==='已出餐'&&o.mode==='堂食'?`<button class="btn2" onclick="setS('${o.no}','已到店')">我已到店</button>`:''}</div>`).join(''):'还没有订单';}
+async function pay(no){await j('/api/orders/'+no+'/pay',{});renderMy();}
+async function setS(no,s){await j('/api/orders/'+no+'/status',{status:s});renderMy();}
+load();setInterval(renderMy,10000);
+</script></body></html>

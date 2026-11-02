@@ -1,0 +1,16 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>老谢手工面 · 后厨接单（老板专用）</title>
+<style>body{margin:0;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#fbf4ec;color:#2a1410}
+.h{background:#222;padding:22px 16px;color:#fff;text-align:center}.h b{font-size:24px}
+.card{background:#fff;border-radius:12px;padding:14px;margin:10px 14px}
+.btn2{background:#fff;color:#b3201b;border:1px solid #b3201b;border-radius:18px;padding:8px 14px;margin:4px}
+a{color:#b3201b}</style></head><body>
+<div class="h"><b>老谢手工面 · 后厨接单</b><div>老板专用 · 顾客点单页面里没有这个入口</div><div><a href="/admin.html" style="color:#fff">去后台（改座位、收款码、售罄）</a></div></div>
+<div id="list"></div>
+<script>
+async function j(u,o){let r=await fetch(u,{method:o?'POST':'GET',headers:{'Content-Type':'application/json'},body:o?JSON.stringify(o):undefined});return r.json();}
+async function render(){let all=await j('/api/orders');document.getElementById('list').innerHTML=all.length?all.slice().reverse().map(o=>`<div class="card"><b>取餐号 ${o.no} · ${o.status}</b><br>${o.time} ${o.mode} ${o.seat?o.seat+'号桌':''} ${o.people}人 到店：${o.arrive||'尽快'} ${o.address||''} ${o.phone||''}<br>${o.items.map(i=>i.name+'×'+i.qty+'（'+i.price+'元'+i.unit+'）').join('，')}<br><b>合计 ${o.total} 元</b><br>${o.status==='待老板确认'?`<button class="btn2" onclick="setS('${o.no}','制作中')">确认收款，开始做</button>`:''}${o.status==='制作中'?`<button class="btn2" onclick="setS('${o.no}','已出餐')">出餐完成</button>`:''}</div>`).join(''):'还没有订单';}
+async function setS(no,s){await j('/api/orders/'+no+'/status',{status:s});render();}
+render();setInterval(render,5000);
+</script></body></html>

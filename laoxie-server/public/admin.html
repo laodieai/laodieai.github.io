@@ -1,0 +1,24 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>老谢手工面 · 后台（老板专用）</title>
+<style>body{margin:0;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#fbf4ec;color:#2a1410;padding:16px}
+input{padding:9px;border:1px solid #ccc;border-radius:8px;font-size:15px;width:90%}
+.btn2{background:#fff;color:#b3201b;border:1px solid #b3201b;border-radius:18px;padding:10px 16px;margin:6px}
+a{color:#b3201b}</style></head><body>
+<h2>老谢手工面 · 后台（老板专用）</h2><p><a href="/kitchen.html">回后厨接单</a> · 顾客点单页面里没有这个入口</p>
+<p>店址：<input id="address"></p>
+<p>电话：<input id="phone"></p>
+<p>堂食座位数：<input id="seats" type="number" min="1"></p>
+<p>老板收款码图片：<input type="file" accept="image/*" onchange="up(event)"></p>
+<div id="qr"></div>
+<p><button class="btn2" onclick="save()">保存设置</button></p>
+<h3>售罄开关</h3><div id="sold"></div>
+<script>
+let menu=[],s={};
+async function j(u,o){let r=await fetch(u,{method:o?'POST':'GET',headers:{'Content-Type':'application/json'},body:o?JSON.stringify(o):undefined});return r.json();}
+async function load(){menu=await j('/api/menu');s=await j('/api/settings');document.getElementById('address').value=s.address||'';document.getElementById('phone').value=s.phone||'';document.getElementById('seats').value=s.seats||10;document.getElementById('qr').innerHTML=s.payment_qr?`<img src="${s.payment_qr}" style="max-width:220px">`:'未上传收款码';document.getElementById('sold').innerHTML=menu.map(x=>`<label style="display:block;margin:6px 0"><input type="checkbox" ${(s.soldout||[]).includes(x.name)?'checked':''} onchange="tog('${x.name}',this.checked)"> ${x.name} ${x.price}元</label>`).join('');}
+async function save(){s.address=document.getElementById('address').value;s.phone=document.getElementById('phone').value;s.seats=parseInt(document.getElementById('seats').value)||10;await j('/api/settings',s);alert('已保存');}
+function tog(n,c){s.soldout=s.soldout||[];if(c&&!s.soldout.includes(n))s.soldout.push(n);if(!c)s.soldout=s.soldout.filter(x=>x!==n);j('/api/settings',s);}
+function up(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{s.payment_qr=r.result;j('/api/settings',s).then(()=>load());};r.readAsDataURL(f);}
+load();
+</script></body></html>
