@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>老爹世界网站</title>
+<link rel="icon" href="/icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0f8a6d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="老爹世界">
+<meta name="mobile-web-app-capable" content="yes">
 <style>
   :root {
     --bg: #f4f5f6;
@@ -201,28 +208,6 @@
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
 
-  .search-wrap { padding: 2px 0 8px; }
-  .search-input {
-    width: 100%; height: 40px;
-    padding: 0 14px 0 38px;
-    border: 1px solid var(--border); border-radius: 10px;
-    background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='17' height='17' viewBox='0 0 24 24' fill='none' stroke='%238a929c' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M21 21l-4.3-4.3'/%3E%3C/svg%3E") no-repeat 12px center;
-    color: var(--text); font-size: 15px; outline: none;
-    transition: border-color .15s, box-shadow .15s;
-    -webkit-appearance: none;
-  }
-  .search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
-  .search-input::placeholder { color: var(--text-2); }
-  .search-input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
-
-  .empty {
-    display: none;
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--text-2);
-  }
-  .empty .big { font-size: 40px; margin-bottom: 10px; }
-
   footer {
     max-width: 1180px; margin: 0 auto;
     padding: 0 16px 40px;
@@ -251,13 +236,10 @@
     }
     .chips::-webkit-scrollbar { display: none; }
     .chips.at-end { -webkit-mask-image: none; mask-image: none; }
-    /* 下滑看内容或正在搜索时头部收缩，只留搜索和分类滑动条 */
+    /* 下滑看内容时头部收缩，只留分类滑动条 */
     .topbar.scrolled .topbar-row,
-    .topbar.scrolled .view-tabs,
-    .topbar.searching .topbar-row,
-    .topbar.searching .view-tabs { display: none; }
+    .topbar.scrolled .view-tabs { display: none; }
     .topbar.scrolled .topbar-inner { padding-top: 8px; padding-bottom: 8px; }
-    .topbar.scrolled .search-wrap { margin-top: 0; }
     .topbar.scrolled .chips { margin-top: 8px; }
     main { padding: 16px 12px 50px; }
     .section { scroll-margin-top: 108px; }
@@ -279,25 +261,18 @@
       <button class="view-tab active" data-view="category">按分类</button>
       <button class="view-tab" data-view="country">按国家</button>
     </div>
-    <div class="search-wrap">
-      <input id="searchInput" class="search-input" type="search"
-             placeholder="搜索全部网站，如：特斯拉 / 台风 / 发音 / 银行" autocomplete="off">
-    </div>
     <div class="chips" id="chips"></div>
   </div>
 </div>
 
 <main id="main"></main>
-<div class="empty" id="empty">
-  <div class="big">&#128269;</div>
-  <p>没有找到匹配的网站，换个关键词试试</p>
-</div>
 
 
 
 <script>
 /* ==================== 按分类数据 ==================== */
 const CATEGORIES = [
+  { id: "order",    name: "远程点单", color: "#b91c1c" },
   { id: "mine",     name: "我的网站", color: "#b8860b" },
   { id: "company",  name: "全球名企", color: "#37474f" },
   { id: "treasure", name: "宝藏网站", color: "#c47b12" },
@@ -322,10 +297,10 @@ const SITES = [
   { c: "mine", name: "老爹单词库", url: "words/", desc: "单词库 365 天", icon: "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23c26d1b%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23e08f2e%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22url%28%23g%29%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2245%22%20font-size%3D%2234%22%20text-anchor%3D%22middle%22%20fill%3D%22%23fff%22%20font-family%3D%22PingFang%20SC%2CMicrosoft%20YaHei%2Csans-serif%22%20font-weight%3D%22700%22%3E%E8%AF%8D%3C/text%3E%3C/svg%3E" },
   { c: "mine", name: "老爹每日读书", url: "dushu/", desc: "每天精读一本好书（可朗读）", icon: "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%227a3e1d%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22b8860b%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22url%28%23g%29%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2245%22%20font-size%3D%2234%22%20text-anchor%3D%22middle%22%20fill%3D%22%23fff%22%20font-family%3D%22PingFang%20SC%2CMicrosoft%20YaHei%2Csans-serif%22%20font-weight%3D%22700%22%3E%E8%AF%BB%3C/text%3E%3C/svg%3E" },
   { c: "mine", name: "香港四大天王", url: "tianwang/", desc: "张学友、刘德华、郭富城、黎明，另有张国荣、谭咏麟", icon: "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%229f1239%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22e11d48%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22url%28%23g%29%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2245%22%20font-size%3D%2234%22%20text-anchor%3D%22middle%22%20fill%3D%22%23fff%22%20font-family%3D%22PingFang%20SC%2CMicrosoft%20YaHei%2Csans-serif%22%20font-weight%3D%22700%22%3E%E6%AD%8C%3C/text%3E%3C/svg%3E" },
-  { c: "mine", name: "笑笑酒馆扫码点菜", url: "https://xiaoxiao.laodieai.com/", desc: "笑笑酒馆 · 点菜 预约 打包 外卖", icon: "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23b91c1c%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23ea580c%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22url%28%23g%29%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2245%22%20font-size%3D%2234%22%20text-anchor%3D%22middle%22%20fill%3D%22%23fff%22%20font-family%3D%22PingFang%20SC%2CMicrosoft%20YaHei%2Csans-serif%22%20font-weight%3D%22700%22%3E%E7%82%B9%3C/text%3E%3C/svg%3E" },
-  { c: "mine", name: "老爹大排档", url: "https://paidang.laodieai.com/", desc: "大排档 · 点菜 预约 打包 外卖", icon: "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23c2410c%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23f59e0b%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22url%28%23g%29%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2245%22%20font-size%3D%2234%22%20text-anchor%3D%22middle%22%20fill%3D%22%23fff%22%20font-family%3D%22PingFang%20SC%2CMicrosoft%20YaHei%2Csans-serif%22%20font-weight%3D%22700%22%3E%E7%82%92%3C/text%3E%3C/svg%3E" },
-    { c: "mine", name: "林利水产店", url: "https://linli.laodieai.com/", desc: "水产海鲜 · 自取 外卖 · 时价称重", icon: "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%230369a1%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%2306b6d4%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22url%28%23g%29%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2245%22%20font-size%3D%2234%22%20text-anchor%3D%22middle%22%20fill%3D%22%23fff%22%20font-family%3D%22PingFang%20SC%2CMicrosoft%20YaHei%2Csans-serif%22%20font-weight%3D%22700%22%3E%E9%B2%9C%3C/text%3E%3C/svg%3E" },
-{ c: "mine", name: "老爹面馆", url: "https://mianguan.laodieai.com/", desc: "远程点单，到店就吃 · 堂食 打包 外卖", icon: "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23991b1b%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23f59e0b%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22url%28%23g%29%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2245%22%20font-size%3D%2234%22%20text-anchor%3D%22middle%22%20fill%3D%22%23fff%22%20font-family%3D%22PingFang%20SC%2CMicrosoft%20YaHei%2Csans-serif%22%20font-weight%3D%22700%22%3E%E9%9D%A2%3C/text%3E%3C/svg%3E" },
+  { c: "order", name: "笑笑酒馆", url: "https://www.laodieai.com/xiaoxiao", desc: "笑笑酒馆 · 点菜 预约 打包 外卖", icon: "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23b91c1c%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23ea580c%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22url%28%23g%29%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2245%22%20font-size%3D%2234%22%20text-anchor%3D%22middle%22%20fill%3D%22%23fff%22%20font-family%3D%22PingFang%20SC%2CMicrosoft%20YaHei%2Csans-serif%22%20font-weight%3D%22700%22%3E%E7%82%B9%3C/text%3E%3C/svg%3E" },
+  { c: "order", name: "老爹大排档", url: "https://www.laodieai.com/paidang", desc: "大排档 · 点菜 预约 打包 外卖", icon: "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23c2410c%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23f59e0b%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22url%28%23g%29%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2245%22%20font-size%3D%2234%22%20text-anchor%3D%22middle%22%20fill%3D%22%23fff%22%20font-family%3D%22PingFang%20SC%2CMicrosoft%20YaHei%2Csans-serif%22%20font-weight%3D%22700%22%3E%E7%82%92%3C/text%3E%3C/svg%3E" },
+    { c: "order", name: "林利水产店", url: "https://www.laodieai.com/linli", desc: "水产海鲜 · 自取 外卖 · 时价称重", icon: "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%230369a1%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%2306b6d4%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22url%28%23g%29%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2245%22%20font-size%3D%2234%22%20text-anchor%3D%22middle%22%20fill%3D%22%23fff%22%20font-family%3D%22PingFang%20SC%2CMicrosoft%20YaHei%2Csans-serif%22%20font-weight%3D%22700%22%3E%E9%B2%9C%3C/text%3E%3C/svg%3E" },
+{ c: "order", name: "老爹面馆", url: "https://www.laodieai.com/mianguan", desc: "远程点单，到店就吃 · 堂食 打包 外卖", icon: "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23991b1b%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23f59e0b%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22url%28%23g%29%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2245%22%20font-size%3D%2234%22%20text-anchor%3D%22middle%22%20fill%3D%22%23fff%22%20font-family%3D%22PingFang%20SC%2CMicrosoft%20YaHei%2Csans-serif%22%20font-weight%3D%22700%22%3E%E9%9D%A2%3C/text%3E%3C/svg%3E" },
 
   { c: "treasure", name: "Windy 气象风图", url: "https://www.windy.com", desc: "全球气象风图，看台风路径神器" },
   { c: "treasure", name: "Zoom Earth", url: "https://zoom.earth", desc: "实时卫星云图与风暴追踪" },
@@ -1196,7 +1171,6 @@ const COUNTRIES = [
 /* ==================== 渲染逻辑 ==================== */
 const main = document.getElementById("main");
 const chipsEl = document.getElementById("chips");
-const emptyEl = document.getElementById("empty");
 
 let currentView = "category";
 
@@ -1238,79 +1212,40 @@ function cardHtml(site) {
     '<div class="desc">' + site.desc + '</div></div></a>';
 }
 
-function hostOf(u) {
-  try { return new URL(u).hostname.replace(/^www\./, "").toLowerCase(); }
-  catch (e) { return (u || "").toLowerCase(); }
-}
-function match(site, q) {
-  if (!q) return true;
-  const t = (site.name + " " + site.desc + " " + hostOf(site.url)).toLowerCase();
-  return q.split(/\s+/).filter(Boolean).every(w => t.includes(w));
-}
-
-function renderCategory(q) {
-  let html = "", shown = 0;
+function renderCategory() {
+  let html = "";
   CATEGORIES.forEach(cat => {
-    const list = SITES.filter(s => s.c === cat.id && match(s, q));
+    const list = SITES.filter(s => s.c === cat.id);
     if (!list.length) return;
-    shown += list.length;
     html += '<section class="section" id="sec-' + cat.id + '">' +
       '<div class="section-head"><span class="dot" style="background:' + cat.color + '"></span>' +
       '<h2>' + cat.name + '</h2><span class="count">' + list.length + '</span></div>' +
       '<div class="grid">' + list.map(cardHtml).join("") + '</div></section>';
   });
-  return { html, shown };
+  return { html };
 }
 
-function renderCountry(q) {
-  let html = "", shown = 0, lastRegion = null;
+function renderCountry() {
+  let html = "", lastRegion = null;
   COUNTRIES.forEach(cty => {
-    const list = cty.sites.filter(s => match(s, q));
+    const list = cty.sites;
     if (!list.length) return;
     if (cty.region !== lastRegion) {
       html += '<div class="region-title">' + cty.region + '</div>';
       lastRegion = cty.region;
     }
-    shown += list.length;
     html += '<section class="section" id="sec-' + cty.id + '">' +
       '<div class="section-head"><span class="flag">' + cty.flag + '</span>' +
       '<h2>' + cty.name + '</h2><span class="count">' + list.length + '</span></div>' +
       '<div class="grid">' + list.map(cardHtml).join("") + '</div></section>';
   });
-  return { html, shown };
+  return { html };
 }
 
-let query = "";
 function render() {
-  document.querySelector(".topbar").classList.toggle("searching", !!query);
-  if (query) {
-    const seen = new Set();
-    const hits = [];
-    const push = s => {
-      const h = hostOf(s.url);
-      if (!seen.has(h)) { seen.add(h); hits.push(s); }
-    };
-    SITES.forEach(s => { if (match(s, query)) push(s); });
-    COUNTRIES.forEach(cty => cty.sites.forEach(s => { if (match(s, query)) push(s); }));
-    chipsEl.style.display = "none";
-    main.innerHTML = hits.length
-      ? '<section class="section"><div class="section-head"><span class="dot" style="background:#0f8a6d"></span>' +
-        '<h2>搜索结果</h2><span class="count">' + hits.length + '</span></div>' +
-        '<div class="grid">' + hits.map(cardHtml).join("") + "</div></section>"
-      : "";
-    emptyEl.style.display = hits.length ? "none" : "block";
-    return;
-  }
-  chipsEl.style.display = "";
-  const r = currentView === "category" ? renderCategory(query) : renderCountry(query);
+  const r = currentView === "category" ? renderCategory() : renderCountry();
   main.innerHTML = r.html;
-  emptyEl.style.display = r.shown ? "none" : "block";
 }
-const searchInput = document.getElementById("searchInput");
-searchInput.addEventListener("input", () => {
-  query = searchInput.value.trim().toLowerCase();
-  render();
-});
 
 /* ==================== 分组标签 ==================== */
 function buildChips() {
